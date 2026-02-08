@@ -3,12 +3,12 @@ import { getAuth } from "firebase/auth";
 
 // Firebase config - these are publishable keys
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyATQiZKadnZ5-sdZun4HMf6PQv9cPGp64k",
+  authDomain: "billobattlehub.firebaseapp.com",
+  projectId: "billobattlehub",
+  storageBucket: "billobattlehub.firebasestorage.app",
+  messagingSenderId: "1077370113383",
+  appId: "G-HZ0T6F5X7P",
 };
 
 const app = initializeApp(firebaseConfig);
