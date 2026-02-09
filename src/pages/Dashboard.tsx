@@ -1,17 +1,20 @@
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import WalletCard from "@/components/dashboard/WalletCard";
 import QuickActions from "@/components/dashboard/QuickActions";
-import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
+import { Flame, Loader2 } from "lucide-react";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { profile, wallet, streak, loading } = useProfile();
 
-  // Placeholder data — will be wired to Supabase
-  const credits = 150;
-  const cash = 0;
-  const streak = 3;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
@@ -25,7 +28,7 @@ const Dashboard = () => {
         >
           <div>
             <h1 className="font-display font-bold text-xl">
-              Welcome, <span className="text-primary">{user?.displayName || "Player"}</span>
+              Welcome, <span className="text-primary">{profile?.username || "Player"}</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">Complete daily tasks to earn free credits!</p>
           </div>
@@ -33,13 +36,13 @@ const Dashboard = () => {
             <Flame className="w-5 h-5 text-destructive" />
             <div>
               <p className="text-xs text-muted-foreground">Streak</p>
-              <p className="font-display font-bold text-foreground">{streak} Days</p>
+              <p className="font-display font-bold text-foreground">{streak?.current_streak || 0} Days</p>
             </div>
           </div>
         </motion.div>
 
         {/* Wallet */}
-        <WalletCard credits={credits} cash={cash} />
+        <WalletCard credits={wallet?.credits || 0} cash={wallet?.cash || 0} />
 
         {/* Quick Actions */}
         <div>
