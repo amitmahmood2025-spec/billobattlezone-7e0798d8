@@ -1,13 +1,1 @@
-project_id = "sqvatkplmbneuyjogqtv"
-
-[functions.sync-profile]
-verify_jwt = false
-
-[functions.claim-task]
-verify_jwt = false
-
-[functions.spin-wheel]
-verify_jwt = false
-
-[functions.admin-action]
-verify_jwt = false
+project_id = "ivvcefmzejilpxkksymt"
