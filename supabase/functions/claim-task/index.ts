@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -21,15 +21,30 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Validate firebaseUid format (prevent injection)
+    if (typeof firebaseUid !== "string" || firebaseUid.length > 128 || !/^[a-zA-Z0-9]+$/.test(firebaseUid)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid credentials" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (typeof taskId !== "string" || !/^[0-9a-f-]{36}$/.test(taskId)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid task ID" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get profile
+    // Get profile - this validates the user exists
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id")
+      .select("id, is_banned")
       .eq("firebase_uid", firebaseUid)
       .single();
 
@@ -37,6 +52,13 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Profile not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (profile.is_banned) {
+      return new Response(
+        JSON.stringify({ error: "Account suspended" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -55,7 +77,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check daily credit cap (200 credits max from tasks)
+    // Check daily credit cap (200 credits max)
     const today = new Date().toISOString().split("T")[0];
     const { data: todayClaims } = await supabase
       .from("task_claims")
@@ -64,8 +86,7 @@ Deno.serve(async (req) => {
       .gte("claimed_at", `${today}T00:00:00Z`);
 
     const totalEarnedToday = (todayClaims || []).reduce(
-      (sum, c) => sum + (c.credits_earned || 0),
-      0
+      (sum, c) => sum + (c.credits_earned || 0), 0
     );
 
     if (totalEarnedToday >= 200) {
@@ -86,19 +107,13 @@ Deno.serve(async (req) => {
     if (!userTask) {
       const { data: newUserTask } = await supabase
         .from("user_tasks")
-        .insert({
-          profile_id: profile.id,
-          task_id: taskId,
-          progress: 0,
-          is_completed: false,
-          is_claimed: false,
-        })
+        .insert({ profile_id: profile.id, task_id: taskId, progress: 0, is_completed: false, is_claimed: false })
         .select()
         .single();
       userTask = newUserTask;
     }
 
-    // Check if already claimed based on reset type
+    // Check if already claimed
     if (userTask?.is_claimed && task.reset_type === "never") {
       return new Response(
         JSON.stringify({ error: "Task already claimed" }),
@@ -116,7 +131,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Check rate limit (10 claims per hour)
+    // Rate limit: 10 claims per hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count: recentClaims } = await supabase
       .from("task_claims")
@@ -145,56 +160,30 @@ Deno.serve(async (req) => {
       );
     }
 
-    const creditsToAward = Math.min(
-      task.reward_credits,
-      200 - totalEarnedToday
-    );
+    const creditsToAward = Math.min(task.reward_credits, 200 - totalEarnedToday);
 
-    // Update wallet
-    await supabase
-      .from("wallets")
-      .update({
-        credits: (wallet.credits || 0) + creditsToAward,
-        total_earned: (wallet.total_earned || 0) + creditsToAward,
-      })
-      .eq("id", wallet.id);
+    await supabase.from("wallets").update({
+      credits: (wallet.credits || 0) + creditsToAward,
+      total_earned: (wallet.total_earned || 0) + creditsToAward,
+    }).eq("id", wallet.id);
 
-    // Record claim
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
     await supabase.from("task_claims").insert({
-      profile_id: profile.id,
-      task_id: taskId,
-      credits_earned: creditsToAward,
-      ip_address: clientIp,
+      profile_id: profile.id, task_id: taskId, credits_earned: creditsToAward, ip_address: clientIp,
     });
 
-    // Update user_task
-    await supabase
-      .from("user_tasks")
-      .update({
-        is_completed: true,
-        is_claimed: true,
-        last_claimed_at: new Date().toISOString(),
-      })
-      .eq("id", userTask.id);
+    await supabase.from("user_tasks").update({
+      is_completed: true, is_claimed: true, last_claimed_at: new Date().toISOString(),
+    }).eq("id", userTask!.id);
 
-    // Record transaction
     await supabase.from("transactions").insert({
-      profile_id: profile.id,
-      type: "credit_earn",
-      amount: creditsToAward,
-      balance_before: wallet.credits,
-      balance_after: (wallet.credits || 0) + creditsToAward,
-      description: `Task: ${task.title}`,
-      reference_id: taskId,
+      profile_id: profile.id, type: "credit_earn", amount: creditsToAward,
+      balance_before: wallet.credits, balance_after: (wallet.credits || 0) + creditsToAward,
+      description: `Task: ${task.title}`, reference_id: taskId,
     });
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        creditsEarned: creditsToAward,
-        newBalance: (wallet.credits || 0) + creditsToAward,
-      }),
+      JSON.stringify({ success: true, creditsEarned: creditsToAward, newBalance: (wallet.credits || 0) + creditsToAward }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

@@ -1,13 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import Footer from "@/components/landing/Footer";
 import LoginModal from "@/components/auth/LoginModal";
 import RegisterModal from "@/components/auth/RegisterModal";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (user) return null; // Will redirect
 
   const switchToRegister = () => {
     setLoginOpen(false);
@@ -21,7 +42,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass-strong">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="font-display font-bold text-xl">
