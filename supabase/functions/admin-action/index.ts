@@ -229,6 +229,97 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "create_tournament": {
+        const { title, game_type, description, entry_fee, entry_fee_type, prize_pool, max_participants, starts_at, ends_at, rules } = data;
+        if (!title || !game_type || !starts_at) {
+          return new Response(JSON.stringify({ error: "Title, game type and start time required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const { data: newTournament, error: createErr } = await supabase.from("tournaments").insert({
+          title, game_type, description: description || null,
+          entry_fee: entry_fee || 0, entry_fee_type: entry_fee_type || "credits",
+          prize_pool: prize_pool || 0, max_participants: max_participants || null,
+          starts_at, ends_at: ends_at || null, rules: rules || null, status: "upcoming",
+        }).select().single();
+        if (createErr) throw createErr;
+        result = { success: true, message: "Tournament created", tournament: newTournament };
+        break;
+      }
+
+      case "update_tournament": {
+        const { tournamentId, updates } = data;
+        if (!tournamentId || !updates) {
+          return new Response(JSON.stringify({ error: "Tournament ID and updates required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const allowedFields = ["title", "game_type", "description", "entry_fee", "entry_fee_type", "prize_pool", "max_participants", "starts_at", "ends_at", "rules", "status"];
+        const sanitized: Record<string, unknown> = {};
+        for (const key of allowedFields) {
+          if (key in updates) sanitized[key] = updates[key];
+        }
+        await supabase.from("tournaments").update(sanitized).eq("id", tournamentId);
+        result = { success: true, message: "Tournament updated" };
+        break;
+      }
+
+      case "delete_tournament": {
+        const { tournamentId } = data;
+        if (!tournamentId) {
+          return new Response(JSON.stringify({ error: "Tournament ID required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        // Delete entries first
+        await supabase.from("tournament_entries").delete().eq("tournament_id", tournamentId);
+        await supabase.from("tournaments").delete().eq("id", tournamentId);
+        result = { success: true, message: "Tournament deleted" };
+        break;
+      }
+
+      case "get_tournament_entries": {
+        const { tournamentId } = data;
+        if (!tournamentId) {
+          return new Response(JSON.stringify({ error: "Tournament ID required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const { data: entries } = await supabase
+          .from("tournament_entries")
+          .select("*, profiles(username, email)")
+          .eq("tournament_id", tournamentId)
+          .order("joined_at", { ascending: true });
+        result = { success: true, entries: entries || [] };
+        break;
+      }
+
+      case "update_placement": {
+        const { entryId, placement, prizeWon } = data;
+        if (!entryId) {
+          return new Response(JSON.stringify({ error: "Entry ID required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        await supabase.from("tournament_entries").update({
+          placement: placement || null, prize_won: prizeWon || 0,
+        }).eq("id", entryId);
+
+        // If prize won, credit the winner
+        if (prizeWon && prizeWon > 0) {
+          const { data: entry } = await supabase.from("tournament_entries").select("*, tournaments(title)").eq("id", entryId).single();
+          if (entry) {
+            const { data: wallet } = await supabase.from("wallets").select("*").eq("profile_id", entry.profile_id).single();
+            if (wallet) {
+              await supabase.from("wallets").update({ cash: (wallet.cash || 0) + prizeWon }).eq("id", wallet.id);
+              await supabase.from("transactions").insert({
+                profile_id: entry.profile_id, type: "prize_won", amount: prizeWon,
+                balance_before: wallet.cash, balance_after: (wallet.cash || 0) + prizeWon,
+                description: `Tournament prize: ${entry.tournaments?.title || "Unknown"}`,
+                reference_id: entry.tournament_id,
+              });
+            }
+          }
+        }
+        result = { success: true, message: "Placement updated" };
+        break;
+      }
+
       default:
         return new Response(JSON.stringify({ error: "Unknown action" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });

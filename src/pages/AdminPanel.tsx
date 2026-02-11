@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardNav from "@/components/dashboard/DashboardNav";
+import TournamentManager from "@/components/admin/TournamentManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -266,13 +267,14 @@ const AdminPanel = () => {
         </motion.div>
 
         <Tabs defaultValue="deposits" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 glass">
+          <TabsList className="w-full grid grid-cols-4 glass">
             <TabsTrigger value="deposits">
               Deposits ({stats.pendingDeposits})
             </TabsTrigger>
             <TabsTrigger value="withdrawals">
               Withdrawals ({stats.pendingWithdrawals})
             </TabsTrigger>
+            <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -408,6 +410,10 @@ const AdminPanel = () => {
                 </div>
               ))
             )}
+          </TabsContent>
+
+          <TabsContent value="tournaments" className="mt-4">
+            <TournamentManager />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-4 space-y-4">
