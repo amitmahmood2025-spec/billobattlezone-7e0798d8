@@ -1,29 +1,85 @@
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Zap, Trophy, Gamepad2 } from "lucide-react";
+import { Zap, Trophy, Gamepad2, ChevronLeft, ChevronRight } from "lucide-react";
+
+import freefireBanner from "@/assets/games/freefire-banner.jpg";
+import pubgBanner from "@/assets/games/pubg-banner.jpg";
+import ludoBanner from "@/assets/games/ludo-banner.jpg";
 
 interface HeroSectionProps {
   onLogin: () => void;
   onRegister: () => void;
 }
 
+const slides = [
+  { image: freefireBanner, title: "FREE FIRE", subtitle: "Battle Royale Tournaments" },
+  { image: pubgBanner, title: "PUBG MOBILE", subtitle: "Squad & Solo Matches" },
+  { image: ludoBanner, title: "LUDO", subtitle: "Classic Board Game Battles" },
+];
+
 const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
-      {/* Animated background effects */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[120px] animate-pulse-neon" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-purple/5 rounded-full blur-[100px] animate-pulse-neon" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/3 rounded-full blur-[200px]" />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Sliding Background Images */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current}
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.8 }}
+          className="absolute inset-0"
+        >
+          <img
+            src={slides[current].image}
+            alt={slides[current].title}
+            className="w-full h-full object-cover"
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-background/60" />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Slide indicators */}
+      <div className="absolute bottom-32 md:bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === current ? "w-8 bg-primary neon-glow" : "w-4 bg-muted-foreground/30"
+            }`}
+          />
+        ))}
       </div>
 
-      {/* Grid overlay */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: "linear-gradient(hsl(var(--neon)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--neon)) 1px, transparent 1px)",
-        backgroundSize: "60px 60px",
-      }} />
+      {/* Nav arrows */}
+      <button
+        onClick={() => setCurrent((prev) => (prev - 1 + slides.length) % slides.length)}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 glass rounded-full p-2 hover:neon-glow transition-all"
+      >
+        <ChevronLeft className="w-5 h-5 text-foreground" />
+      </button>
+      <button
+        onClick={() => setCurrent((prev) => (prev + 1) % slides.length)}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 glass rounded-full p-2 hover:neon-glow transition-all"
+      >
+        <ChevronRight className="w-5 h-5 text-foreground" />
+      </button>
 
-      <div className="relative z-10 text-center max-w-4xl mx-auto">
+      {/* Content */}
+      <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -39,13 +95,29 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight mb-6"
+          className="text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight mb-4"
         >
           <span className="text-foreground">BILLO</span>{" "}
           <span className="text-gradient-neon">BATTLE</span>
           <br />
           <span className="text-foreground">ZONE</span>
         </motion.h1>
+
+        {/* Current game name */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-6"
+          >
+            <span className="text-xl md:text-2xl font-display font-bold text-primary neon-text">
+              {slides[current].title}
+            </span>
+            <span className="text-muted-foreground ml-2">— {slides[current].subtitle}</span>
+          </motion.div>
+        </AnimatePresence>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
