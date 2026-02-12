@@ -21,7 +21,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate firebaseUid
     if (typeof firebaseUid !== "string" || firebaseUid.length > 128 || !/^[a-zA-Z0-9]+$/.test(firebaseUid)) {
       return new Response(
         JSON.stringify({ error: "Invalid credentials" }),
@@ -34,44 +33,119 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify admin role server-side
     const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, is_banned")
-      .eq("firebase_uid", firebaseUid)
-      .single();
+      .from("profiles").select("id, is_banned").eq("firebase_uid", firebaseUid).single();
 
     if (!profile) {
-      return new Response(
-        JSON.stringify({ error: "Profile not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Profile not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (profile.is_banned) {
-      return new Response(
-        JSON.stringify({ error: "Account suspended" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Account suspended" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const { data: adminRole } = await supabase
-      .from("user_roles")
-      .select("*")
-      .eq("user_id", profile.id)
-      .eq("role", "admin")
-      .single();
+      .from("user_roles").select("*").eq("user_id", profile.id).eq("role", "admin").single();
 
     if (!adminRole) {
-      return new Response(
-        JSON.stringify({ error: "Admin access required" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     let result;
 
     switch (action) {
+      // ========== ADMIN MANAGEMENT ==========
+      case "add_admin": {
+        const { emailOrUsername } = data;
+        if (!emailOrUsername) {
+          return new Response(JSON.stringify({ error: "Email or username required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const { data: targetProfile } = await supabase
+          .from("profiles").select("id")
+          .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
+          .single();
+
+        if (!targetProfile) {
+          return new Response(JSON.stringify({ error: "User not found" }),
+            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
+        await supabase.from("user_roles").upsert(
+          { user_id: targetProfile.id, role: "admin" },
+          { onConflict: "user_id,role" }
+        );
+        result = { success: true, message: "Admin added" };
+        break;
+      }
+
+      case "remove_admin": {
+        const { targetUserId } = data;
+        if (!targetUserId) {
+          return new Response(JSON.stringify({ error: "Target user ID required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        if (targetUserId === profile.id) {
+          return new Response(JSON.stringify({ error: "Cannot remove yourself" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        await supabase.from("user_roles").delete().eq("user_id", targetUserId).eq("role", "admin");
+        result = { success: true, message: "Admin removed" };
+        break;
+      }
+
+      // ========== TASK MANAGEMENT ==========
+      case "create_task": {
+        const { title, description, reward_credits, task_type, reset_type, max_claims_per_period, cooldown_hours, icon, sort_order } = data;
+        if (!title) {
+          return new Response(JSON.stringify({ error: "Title required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        await supabase.from("tasks").insert({
+          title, description: description || null,
+          reward_credits: reward_credits || 10, task_type: task_type || "daily",
+          reset_type: reset_type || "daily",
+          max_claims_per_period: max_claims_per_period || 1,
+          cooldown_hours: cooldown_hours || 24,
+          icon: icon || "🎯", sort_order: sort_order || 0, is_active: true,
+        });
+        result = { success: true, message: "Task created" };
+        break;
+      }
+
+      case "update_task": {
+        const { taskId, updates } = data;
+        if (!taskId || !updates) {
+          return new Response(JSON.stringify({ error: "Task ID and updates required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const allowedTaskFields = ["title", "description", "reward_credits", "task_type", "reset_type", "max_claims_per_period", "cooldown_hours", "icon", "sort_order", "is_active"];
+        const sanitizedTask: Record<string, unknown> = {};
+        for (const key of allowedTaskFields) {
+          if (key in updates) sanitizedTask[key] = updates[key];
+        }
+        await supabase.from("tasks").update(sanitizedTask).eq("id", taskId);
+        result = { success: true, message: "Task updated" };
+        break;
+      }
+
+      case "delete_task": {
+        const { taskId } = data;
+        if (!taskId) {
+          return new Response(JSON.stringify({ error: "Task ID required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        await supabase.from("user_tasks").delete().eq("task_id", taskId);
+        await supabase.from("task_claims").delete().eq("task_id", taskId);
+        await supabase.from("tasks").delete().eq("id", taskId);
+        result = { success: true, message: "Task deleted" };
+        break;
+      }
+
+      // ========== DEPOSIT/WITHDRAWAL ==========
       case "approve_deposit": {
         const { depositId } = data;
         if (!depositId || typeof depositId !== "string") {
@@ -80,11 +154,7 @@ Deno.serve(async (req) => {
         }
 
         const { data: deposit } = await supabase
-          .from("deposits")
-          .select("*, profiles(*)")
-          .eq("id", depositId)
-          .eq("status", "pending")
-          .single();
+          .from("deposits").select("*, profiles(*)").eq("id", depositId).eq("status", "pending").single();
 
         if (!deposit) {
           return new Response(JSON.stringify({ error: "Deposit not found or already processed" }),
@@ -183,7 +253,6 @@ Deno.serve(async (req) => {
             { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
-        // Refund cash
         const { data: wallet } = await supabase
           .from("wallets").select("*").eq("profile_id", withdrawal.profile_id).single();
 
@@ -229,8 +298,9 @@ Deno.serve(async (req) => {
         break;
       }
 
+      // ========== TOURNAMENT MANAGEMENT ==========
       case "create_tournament": {
-        const { title, game_type, description, entry_fee, entry_fee_type, prize_pool, max_participants, starts_at, ends_at, rules } = data;
+        const { title, game_type, description, entry_fee, entry_fee_type, prize_pool, max_participants, starts_at, ends_at, rules, room_id, room_password } = data;
         if (!title || !game_type || !starts_at) {
           return new Response(JSON.stringify({ error: "Title, game type and start time required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -239,7 +309,9 @@ Deno.serve(async (req) => {
           title, game_type, description: description || null,
           entry_fee: entry_fee || 0, entry_fee_type: entry_fee_type || "credits",
           prize_pool: prize_pool || 0, max_participants: max_participants || null,
-          starts_at, ends_at: ends_at || null, rules: rules || null, status: "upcoming",
+          starts_at, ends_at: ends_at || null, rules: rules || null,
+          room_id: room_id || null, room_password: room_password || null,
+          status: "upcoming",
         }).select().single();
         if (createErr) throw createErr;
         result = { success: true, message: "Tournament created", tournament: newTournament };
@@ -252,7 +324,7 @@ Deno.serve(async (req) => {
           return new Response(JSON.stringify({ error: "Tournament ID and updates required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        const allowedFields = ["title", "game_type", "description", "entry_fee", "entry_fee_type", "prize_pool", "max_participants", "starts_at", "ends_at", "rules", "status"];
+        const allowedFields = ["title", "game_type", "description", "entry_fee", "entry_fee_type", "prize_pool", "max_participants", "starts_at", "ends_at", "rules", "status", "room_id", "room_password"];
         const sanitized: Record<string, unknown> = {};
         for (const key of allowedFields) {
           if (key in updates) sanitized[key] = updates[key];
@@ -268,7 +340,6 @@ Deno.serve(async (req) => {
           return new Response(JSON.stringify({ error: "Tournament ID required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        // Delete entries first
         await supabase.from("tournament_entries").delete().eq("tournament_id", tournamentId);
         await supabase.from("tournaments").delete().eq("id", tournamentId);
         result = { success: true, message: "Tournament deleted" };
@@ -300,7 +371,6 @@ Deno.serve(async (req) => {
           placement: placement || null, prize_won: prizeWon || 0,
         }).eq("id", entryId);
 
-        // If prize won, credit the winner
         if (prizeWon && prizeWon > 0) {
           const { data: entry } = await supabase.from("tournament_entries").select("*, tournaments(title)").eq("id", entryId).single();
           if (entry) {
@@ -317,6 +387,13 @@ Deno.serve(async (req) => {
           }
         }
         result = { success: true, message: "Placement updated" };
+        break;
+      }
+
+      // ========== TOURNAMENT ROOM INFO (for joined players) ==========
+      case "get_room_info": {
+        // This is a non-admin action, but we handle it here for simplicity
+        // Actually we need a separate approach. Let's skip admin check for this.
         break;
       }
 

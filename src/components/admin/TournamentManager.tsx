@@ -49,7 +49,7 @@ interface TournamentEntry {
 const emptyForm = {
   title: "", game_type: "", description: "", entry_fee: "0",
   entry_fee_type: "credits", prize_pool: "0", max_participants: "",
-  starts_at: "", ends_at: "", rules: "",
+  starts_at: "", ends_at: "", rules: "", room_id: "", room_password: "",
 };
 
 const TournamentManager = () => {
@@ -97,32 +97,24 @@ const TournamentManager = () => {
     }
     setActionLoading(true);
     try {
+      const payload = {
+        title: form.title, game_type: form.game_type,
+        description: form.description || null,
+        entry_fee: Number(form.entry_fee), entry_fee_type: form.entry_fee_type,
+        prize_pool: Number(form.prize_pool),
+        max_participants: form.max_participants ? Number(form.max_participants) : null,
+        starts_at: new Date(form.starts_at).toISOString(),
+        ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
+        rules: form.rules || null,
+        room_id: form.room_id || null,
+        room_password: form.room_password || null,
+      };
+
       if (editingId) {
-        await callAdmin("update_tournament", {
-          tournamentId: editingId,
-          updates: {
-            title: form.title, game_type: form.game_type,
-            description: form.description || null,
-            entry_fee: Number(form.entry_fee), entry_fee_type: form.entry_fee_type,
-            prize_pool: Number(form.prize_pool),
-            max_participants: form.max_participants ? Number(form.max_participants) : null,
-            starts_at: new Date(form.starts_at).toISOString(),
-            ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
-            rules: form.rules || null,
-          },
-        });
+        await callAdmin("update_tournament", { tournamentId: editingId, updates: payload });
         toast.success("Tournament updated!");
       } else {
-        await callAdmin("create_tournament", {
-          title: form.title, game_type: form.game_type,
-          description: form.description || null,
-          entry_fee: Number(form.entry_fee), entry_fee_type: form.entry_fee_type,
-          prize_pool: Number(form.prize_pool),
-          max_participants: form.max_participants ? Number(form.max_participants) : null,
-          starts_at: new Date(form.starts_at).toISOString(),
-          ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
-          rules: form.rules || null,
-        });
+        await callAdmin("create_tournament", payload);
         toast.success("Tournament created!");
       }
       setShowForm(false);
@@ -136,7 +128,7 @@ const TournamentManager = () => {
     }
   };
 
-  const handleEdit = (t: Tournament) => {
+  const handleEdit = (t: Tournament & { room_id?: string; room_password?: string }) => {
     setEditingId(t.id);
     setForm({
       title: t.title, game_type: t.game_type, description: t.description || "",
@@ -146,6 +138,8 @@ const TournamentManager = () => {
       starts_at: t.starts_at ? format(new Date(t.starts_at), "yyyy-MM-dd'T'HH:mm") : "",
       ends_at: t.ends_at ? format(new Date(t.ends_at), "yyyy-MM-dd'T'HH:mm") : "",
       rules: t.rules || "",
+      room_id: (t as unknown as Record<string, unknown>).room_id as string || "",
+      room_password: (t as unknown as Record<string, unknown>).room_password as string || "",
     });
     setShowForm(true);
   };
@@ -322,6 +316,13 @@ const TournamentManager = () => {
               </div>
             </div>
             <Input placeholder="Rules (optional)" value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} />
+            <div className="glass rounded-lg p-3 space-y-2">
+              <p className="text-xs font-medium text-primary">🔒 Room Info (hidden until LIVE, only for joined players)</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Input placeholder="Room / Custom ID" value={form.room_id} onChange={(e) => setForm({ ...form, room_id: e.target.value })} />
+                <Input placeholder="Room Password" value={form.room_password} onChange={(e) => setForm({ ...form, room_password: e.target.value })} />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>

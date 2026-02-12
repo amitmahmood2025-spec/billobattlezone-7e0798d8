@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.admin-action]
 verify_jwt = false
+
+[functions.get-room-info]
+verify_jwt = false
