@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
 
       // ========== TASK MANAGEMENT ==========
       case "create_task": {
-        const { title, description, reward_credits, task_type, reset_type, max_claims_per_period, cooldown_hours, icon, sort_order } = data;
+        const { title, description, reward_credits, task_type, reset_type, max_claims_per_period, cooldown_hours, icon, sort_order, task_url, verification_seconds } = data;
         if (!title) {
           return new Response(JSON.stringify({ error: "Title required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -111,6 +111,7 @@ Deno.serve(async (req) => {
           max_claims_per_period: max_claims_per_period || 1,
           cooldown_hours: cooldown_hours || 24,
           icon: icon || "🎯", sort_order: sort_order || 0, is_active: true,
+          task_url: task_url || null, verification_seconds: verification_seconds || 0,
         });
         result = { success: true, message: "Task created" };
         break;
@@ -122,7 +123,7 @@ Deno.serve(async (req) => {
           return new Response(JSON.stringify({ error: "Task ID and updates required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        const allowedTaskFields = ["title", "description", "reward_credits", "task_type", "reset_type", "max_claims_per_period", "cooldown_hours", "icon", "sort_order", "is_active"];
+        const allowedTaskFields = ["title", "description", "reward_credits", "task_type", "reset_type", "max_claims_per_period", "cooldown_hours", "icon", "sort_order", "is_active", "task_url", "verification_seconds"];
         const sanitizedTask: Record<string, unknown> = {};
         for (const key of allowedTaskFields) {
           if (key in updates) sanitizedTask[key] = updates[key];
