@@ -79,7 +79,7 @@
   }
 
   .glass-strong {
-    background: hsla(var(--glass-bg) / 0.8);
+    background: hsla(var(--glass-bg) / 0.85);
     backdrop-filter: blur(30px);
     border: 1px solid hsla(var(--glass-border) / 0.25);
   }
@@ -109,6 +109,15 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .glow-border {
+    border: 1px solid hsla(var(--neon) / 0.3);
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  .shadow-neon {
+    box-shadow: 0 0 12px hsla(var(--neon) / 0.4), 0 4px 16px hsla(var(--neon) / 0.15);
   }
 }
 

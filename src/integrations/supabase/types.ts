@@ -301,6 +301,50 @@ export type Database = {
           },
         ]
       }
+      task_steps: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          reward_credits: number
+          sort_order: number | null
+          step_url: string | null
+          task_id: string
+          title: string
+          verification_seconds: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          reward_credits?: number
+          sort_order?: number | null
+          step_url?: string | null
+          task_id: string
+          title: string
+          verification_seconds?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          reward_credits?: number
+          sort_order?: number | null
+          step_url?: string | null
+          task_id?: string
+          title?: string
+          verification_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_steps_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           cooldown_hours: number | null
@@ -314,7 +358,9 @@ export type Database = {
           reward_credits: number
           sort_order: number | null
           task_type: Database["public"]["Enums"]["task_type"]
+          task_url: string | null
           title: string
+          verification_seconds: number | null
         }
         Insert: {
           cooldown_hours?: number | null
@@ -328,7 +374,9 @@ export type Database = {
           reward_credits?: number
           sort_order?: number | null
           task_type?: Database["public"]["Enums"]["task_type"]
+          task_url?: string | null
           title: string
+          verification_seconds?: number | null
         }
         Update: {
           cooldown_hours?: number | null
@@ -342,7 +390,9 @@ export type Database = {
           reward_credits?: number
           sort_order?: number | null
           task_type?: Database["public"]["Enums"]["task_type"]
+          task_url?: string | null
           title?: string
+          verification_seconds?: number | null
         }
         Relationships: []
       }
@@ -515,6 +565,45 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_task_steps: {
+        Row: {
+          completed_at: string
+          credits_earned: number
+          id: string
+          profile_id: string
+          task_step_id: string
+        }
+        Insert: {
+          completed_at?: string
+          credits_earned?: number
+          id?: string
+          profile_id: string
+          task_step_id: string
+        }
+        Update: {
+          completed_at?: string
+          credits_earned?: number
+          id?: string
+          profile_id?: string
+          task_step_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_task_steps_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_task_steps_task_step_id_fkey"
+            columns: ["task_step_id"]
+            isOneToOne: false
+            referencedRelation: "task_steps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_tasks: {
         Row: {

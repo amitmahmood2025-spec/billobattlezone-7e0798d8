@@ -15,6 +15,8 @@ export interface Task {
   is_active: boolean;
   icon: string | null;
   sort_order: number | null;
+  task_url: string | null;
+  verification_seconds: number;
 }
 
 export interface UserTask {

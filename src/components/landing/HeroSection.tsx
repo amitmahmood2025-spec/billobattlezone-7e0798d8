@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Zap, Trophy, Gamepad2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Zap, Gamepad2, ChevronLeft, ChevronRight } from "lucide-react";
 
 import freefireBanner from "@/assets/games/freefire-banner.jpg";
+import freefireAction from "@/assets/games/freefire-action.jpg";
 import pubgBanner from "@/assets/games/pubg-banner.jpg";
+import pubgAction from "@/assets/games/pubg-action.jpg";
 import ludoBanner from "@/assets/games/ludo-banner.jpg";
+import ludoAction from "@/assets/games/ludo-action.jpg";
 
 interface HeroSectionProps {
   onLogin: () => void;
@@ -13,9 +16,12 @@ interface HeroSectionProps {
 }
 
 const slides = [
-  { image: freefireBanner, title: "FREE FIRE", subtitle: "Battle Royale Tournaments" },
-  { image: pubgBanner, title: "PUBG MOBILE", subtitle: "Squad & Solo Matches" },
-  { image: ludoBanner, title: "LUDO", subtitle: "Classic Board Game Battles" },
+  { image: freefireBanner, title: "FREE FIRE", subtitle: "Battle Royale Tournaments", accent: "from-orange-500/20" },
+  { image: freefireAction, title: "FREE FIRE", subtitle: "Intense Squad Combat", accent: "from-red-500/20" },
+  { image: pubgBanner, title: "PUBG MOBILE", subtitle: "Squad & Solo Matches", accent: "from-yellow-500/20" },
+  { image: pubgAction, title: "PUBG MOBILE", subtitle: "Tactical Warfare", accent: "from-amber-500/20" },
+  { image: ludoBanner, title: "LUDO", subtitle: "Classic Board Game Battles", accent: "from-green-500/20" },
+  { image: ludoAction, title: "LUDO", subtitle: "Roll & Win Prizes", accent: "from-emerald-500/20" },
 ];
 
 const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
@@ -24,7 +30,7 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
-    }, 4000);
+    }, 3500);
     return () => clearInterval(timer);
   }, []);
 
@@ -34,10 +40,10 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
-          initial={{ opacity: 0, scale: 1.1 }}
+          initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.8 }}
+          exit={{ opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.7 }}
           className="absolute inset-0"
         >
           <img
@@ -45,20 +51,19 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
             alt={slides[current].title}
             className="w-full h-full object-cover"
           />
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-background/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/50 via-transparent to-background/50" />
         </motion.div>
       </AnimatePresence>
 
       {/* Slide indicators */}
-      <div className="absolute bottom-32 md:bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+      <div className="absolute bottom-32 md:bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
         {slides.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrent(i)}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === current ? "w-8 bg-primary neon-glow" : "w-4 bg-muted-foreground/30"
+              i === current ? "w-8 bg-primary neon-glow" : "w-3 bg-muted-foreground/30 hover:bg-muted-foreground/50"
             }`}
           />
         ))}
@@ -67,13 +72,13 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
       {/* Nav arrows */}
       <button
         onClick={() => setCurrent((prev) => (prev - 1 + slides.length) % slides.length)}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 glass rounded-full p-2 hover:neon-glow transition-all"
+        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 glass rounded-full p-2 hover:neon-glow transition-all"
       >
         <ChevronLeft className="w-5 h-5 text-foreground" />
       </button>
       <button
         onClick={() => setCurrent((prev) => (prev + 1) % slides.length)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 glass rounded-full p-2 hover:neon-glow transition-all"
+        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 glass rounded-full p-2 hover:neon-glow transition-all"
       >
         <ChevronRight className="w-5 h-5 text-foreground" />
       </button>
@@ -125,7 +130,7 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
         >
-          Earn free credits through daily missions, spin the wheel, and gaming quizzes. 
+          Earn free credits through daily missions, spin the wheel, and gaming quizzes.
           Use credits to join tournaments and win real cash prizes.
         </motion.p>
 
