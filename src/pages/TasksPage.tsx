@@ -11,6 +11,8 @@ import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
+import AdSlot from "@/components/AdSlot";
 
 interface TaskStep {
   id: string;
@@ -308,6 +310,7 @@ const TasksPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
+      <SEO title="Daily Tasks" description="Complete tasks, earn free credits on Billo Battle Zone. Daily login, link visits, spin wheel and more!" />
       <DashboardNav />
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center">
@@ -345,6 +348,7 @@ const TasksPage = () => {
             </TabsContent>
           ))}
         </Tabs>
+        <AdSlot slot="tasks-bottom" format="horizontal" />
       </main>
 
       <AnimatePresence>
