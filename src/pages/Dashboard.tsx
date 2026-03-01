@@ -5,7 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useTasks } from "@/hooks/useTasks";
 import { useTournaments } from "@/hooks/useTournaments";
 import { motion } from "framer-motion";
-import { Flame, Loader2, Trophy, Clock, Sparkles, ArrowRight } from "lucide-react";
+import { Flame, Loader2, Trophy, Clock, Sparkles, ArrowRight, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getGameImage } from "@/lib/gameImages";
 import { format } from "date-fns";
@@ -66,6 +66,29 @@ const Dashboard = () => {
           <h2 className="font-display font-semibold text-lg mb-3">Quick Actions</h2>
           <QuickActions />
         </div>
+
+        {/* Credit Factory Telegram Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="glass rounded-xl p-4 flex items-center justify-between"
+        >
+          <div>
+            <p className="font-display font-semibold flex items-center gap-2">
+              <Send className="w-4 h-4 text-primary" /> Credit Factory
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">Earn credits via Telegram bot</p>
+          </div>
+          <a
+            href="https://t.me/creditfactorybot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition"
+          >
+            Open Bot
+          </a>
+        </motion.div>
 
         {/* Available Tasks Preview */}
         {availableTasks.length > 0 && (
