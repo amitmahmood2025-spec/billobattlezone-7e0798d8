@@ -143,6 +143,7 @@ export type Database = {
           phone: string | null
           referral_code: string | null
           referred_by: string | null
+          telegram_id: string | null
           updated_at: string
           username: string | null
         }
@@ -156,6 +157,7 @@ export type Database = {
           phone?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          telegram_id?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -169,6 +171,7 @@ export type Database = {
           phone?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          telegram_id?: string | null
           updated_at?: string
           username?: string | null
         }
