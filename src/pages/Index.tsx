@@ -6,6 +6,8 @@ import FeaturesSection from "@/components/landing/FeaturesSection";
 import Footer from "@/components/landing/Footer";
 import LoginModal from "@/components/auth/LoginModal";
 import RegisterModal from "@/components/auth/RegisterModal";
+import SEO from "@/components/SEO";
+import AdSlot from "@/components/AdSlot";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -42,6 +44,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Home" description="Billo Battle Zone — Earn free credits, join tournaments, win real cash prizes! Play Free Fire, PUBG & Ludo." />
       <nav className="fixed top-0 left-0 right-0 z-50 glass-strong">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="font-display font-bold text-xl">
@@ -66,7 +69,13 @@ const Index = () => {
       </nav>
 
       <HeroSection onLogin={() => setLoginOpen(true)} onRegister={() => setRegisterOpen(true)} />
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <AdSlot slot="landing-mid" format="horizontal" />
+      </div>
       <FeaturesSection />
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <AdSlot slot="landing-bottom" format="horizontal" />
+      </div>
       <Footer />
 
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen} onSwitchToRegister={switchToRegister} />

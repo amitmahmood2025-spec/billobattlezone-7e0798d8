@@ -1,4 +1,6 @@
 import { useState } from "react";
+import SEO from "@/components/SEO";
+import AdSlot from "@/components/AdSlot";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
@@ -75,6 +77,7 @@ const TournamentsPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
+      <SEO title="Tournaments" description="Join Free Fire, PUBG & Ludo tournaments on Billo Battle Zone. Win real cash prizes!" />
       <DashboardNav />
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}

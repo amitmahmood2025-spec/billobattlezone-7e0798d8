@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CheckCircle, Clock, XCircle, Loader2, AlertCircle } from "lucide-react";
+import SEO from "@/components/SEO";
+import AdSlot from "@/components/AdSlot";
 
 const paymentMethods = [
   { id: "bkash", name: "bKash", icon: "💳" },
@@ -62,6 +64,7 @@ const WithdrawPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
+      <SEO title="Withdraw" description="Withdraw your cash winnings from Billo Battle Zone to bKash, Nagad, Rocket or Binance." />
       <DashboardNav />
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}

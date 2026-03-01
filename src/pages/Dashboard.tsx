@@ -9,6 +9,8 @@ import { Flame, Loader2, Trophy, Clock, Sparkles, ArrowRight } from "lucide-reac
 import { useNavigate } from "react-router-dom";
 import { getGameImage } from "@/lib/gameImages";
 import { format } from "date-fns";
+import SEO from "@/components/SEO";
+import AdSlot from "@/components/AdSlot";
 
 const Dashboard = () => {
   const { profile, wallet, streak, loading } = useProfile();
@@ -32,6 +34,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
+      <SEO title="Dashboard" description="Your Billo Battle Zone dashboard — manage wallet, tasks, and tournaments." />
       <DashboardNav />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         {/* Welcome + Streak */}
@@ -125,6 +128,9 @@ const Dashboard = () => {
             </div>
           </motion.div>
         )}
+
+        {/* Ad Slot */}
+        <AdSlot slot="dashboard-mid" format="horizontal" />
 
         {/* Recent Activity */}
         <div>
