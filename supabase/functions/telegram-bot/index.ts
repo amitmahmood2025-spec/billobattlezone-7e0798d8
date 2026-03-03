@@ -1,4 +1,4 @@
-import { Bot, Context, InlineKeyboard, webhookCallback } from "https://deno.land/x/grammy@v1.21.1/mod.ts";
+import { Bot, Context, InlineKeyboard, webhookCallback } from "https://esm.sh/grammy@1.21.1";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // ============================================================

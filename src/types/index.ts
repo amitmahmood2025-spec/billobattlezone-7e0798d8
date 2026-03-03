@@ -1,7 +1,6 @@
 // TypeScript interfaces for the application models
 
-// Interface representing a User
-interface User {
+export interface User {
     id: number;
     username: string;
     email: string;
@@ -9,16 +8,14 @@ interface User {
     updatedAt: Date;
 }
 
-// Interface representing a Tournament
-interface Tournament {
+export interface Tournament {
     id: number;
     name: string;
     date: Date;
     participants: User[];
 }
 
-// Interface representing a Match
-interface Match {
+export interface Match {
     id: number;
     tournamentId: number;
     playerOne: User;
@@ -28,16 +25,21 @@ interface Match {
     endTime?: Date;
 }
 
-// Interface representing a Credit Factory
-interface CreditFactory {
+export interface Transaction {
+    id: number;
+    amount: number;
+    type: string;
+    createdAt: Date;
+}
+
+export interface CreditFactory {
     id: number;
     owner: User;
     balance: number;
     transactionHistory: Transaction[];
 }
 
-// Interface representing a Telegram Bot functionality
-interface TelegramBot {
+export interface TelegramBot {
     token: string;
     chatId: string;
     sendMessage(message: string): Promise<void>;

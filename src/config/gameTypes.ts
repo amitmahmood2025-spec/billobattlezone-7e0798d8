@@ -6,8 +6,8 @@ const gameModes = {
     },
     PUBG: {
         BR: ['BR Match', 'Clash Squad'],
-        1v1: ['1v1'],
-        2v2: ['2v2'],
+        '1v1': ['1v1'],
+        '2v2': ['2v2'],
     },
     Ludo: {
         Classic: ['1v1', '2v2'],
