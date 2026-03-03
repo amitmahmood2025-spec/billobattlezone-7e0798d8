@@ -1,22 +1,47 @@
+import { useState, useEffect } from "react";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import WalletCard from "@/components/dashboard/WalletCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import { useProfile } from "@/hooks/useProfile";
 import { useTasks } from "@/hooks/useTasks";
 import { useTournaments } from "@/hooks/useTournaments";
-import { motion } from "framer-motion";
-import { Flame, Loader2, Trophy, Clock, Sparkles, ArrowRight, Send } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Flame, Loader2, Trophy, Clock, Sparkles, ArrowRight, Send, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getGameImage } from "@/lib/gameImages";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
 import AdSlot from "@/components/AdSlot";
 
+import freefireBanner from "@/assets/games/freefire-banner.jpg";
+import freefireAction from "@/assets/games/freefire-action.jpg";
+import pubgBanner from "@/assets/games/pubg-banner.jpg";
+import pubgAction from "@/assets/games/pubg-action.jpg";
+import ludoBanner from "@/assets/games/ludo-banner.jpg";
+import ludoAction from "@/assets/games/ludo-action.jpg";
+
+const heroSlides = [
+  { image: freefireBanner, title: "FREE FIRE", subtitle: "Battle Royale Tournaments" },
+  { image: pubgBanner, title: "PUBG MOBILE", subtitle: "Competitive Matches" },
+  { image: ludoBanner, title: "LUDO KING", subtitle: "Classic Board Game" },
+  { image: freefireAction, title: "CLASH SQUAD", subtitle: "Intense 4v4 Action" },
+  { image: pubgAction, title: "PUBG TDM", subtitle: "Team Deathmatch" },
+  { image: ludoAction, title: "LUDO QUICK", subtitle: "Quick Match Mode" },
+];
+
 const Dashboard = () => {
   const { profile, wallet, streak, loading } = useProfile();
-  const { tasks, userTasks, canClaimTask } = useTasks(profile?.id);
+  const { tasks, canClaimTask } = useTasks(profile?.id);
   const { tournaments } = useTournaments(profile?.id);
   const navigate = useNavigate();
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading) {
     return (
@@ -37,10 +62,68 @@ const Dashboard = () => {
       <SEO title="Dashboard" description="Your Billo Battle Zone dashboard — manage wallet, tasks, and tournaments." />
       <DashboardNav />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+        {/* Hero Auto-Slide Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative rounded-2xl overflow-hidden h-44 sm:h-56 group"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.6 }}
+              className="absolute inset-0"
+            >
+              <img
+                src={heroSlides[currentSlide].image}
+                alt={heroSlides[currentSlide].title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+              <div className="absolute bottom-4 left-4">
+                <p className="font-display font-bold text-xl sm:text-2xl text-foreground neon-text">
+                  {heroSlides[currentSlide].title}
+                </p>
+                <p className="text-sm text-muted-foreground">{heroSlides[currentSlide].subtitle}</p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Slide Controls */}
+          <button
+            onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 glass rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ChevronLeft className="w-4 h-4 text-foreground" />
+          </button>
+          <button
+            onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 glass rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ChevronRight className="w-4 h-4 text-foreground" />
+          </button>
+
+          {/* Dots */}
+          <div className="absolute bottom-2 right-4 flex gap-1.5">
+            {heroSlides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentSlide(i)}
+                className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? "bg-primary w-5" : "bg-foreground/30"}`}
+              />
+            ))}
+          </div>
+        </motion.div>
+
         {/* Welcome + Streak */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
           className="glass rounded-xl p-5 flex items-center justify-between"
         >
           <div>
@@ -81,10 +164,10 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground mt-1">Earn credits via Telegram bot</p>
           </div>
           <a
-            href="https://t.me/creditfactorybot"
+            href="https://t.me/BilloBattleZone_bot"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition"
           >
             Open Bot
           </a>
@@ -152,7 +235,6 @@ const Dashboard = () => {
           </motion.div>
         )}
 
-        {/* Ad Slot */}
         <AdSlot slot="dashboard-mid" format="horizontal" />
 
         {/* Recent Activity */}

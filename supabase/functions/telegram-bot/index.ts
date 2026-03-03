@@ -8,7 +8,7 @@ const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WEBHOOK_SECRET = Deno.env.get("WEBHOOK_SECRET") || "billo-bbz-secret";
-const MINI_APP_URL = Deno.env.get("MINI_APP_URL") || "https://billobattlezone.com";
+const MINI_APP_URL = Deno.env.get("MINI_APP_URL") || "https://billobattlezone.lovable.app";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const bot = new Bot(BOT_TOKEN);
