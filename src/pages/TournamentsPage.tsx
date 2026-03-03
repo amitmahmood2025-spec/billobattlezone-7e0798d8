@@ -18,33 +18,43 @@ import {
 
 // ─── Game & Mode Config ───────────────────────────────────────────────────────
 
+import freefireBanner from "@/assets/games/freefire-banner.jpg";
+import freefireAction from "@/assets/games/freefire-action.jpg";
+import freefireThumb from "@/assets/games/freefire-thumb.jpg";
+import pubgBanner from "@/assets/games/pubg-banner.jpg";
+import pubgAction from "@/assets/games/pubg-action.jpg";
+import pubgThumb from "@/assets/games/pubg-thumb.jpg";
+import ludoBanner from "@/assets/games/ludo-banner.jpg";
+import ludoAction from "@/assets/games/ludo-action.jpg";
+import ludoThumb from "@/assets/games/ludo-thumb.jpg";
+
 const GAME_SECTIONS = [
   {
     label: "FREE FIRE",
     game_type: "Free Fire",
     modes: [
-      { label: "BR Match",    mode: "BR Match",    img: "https://i.imgur.com/8rMHOdJ.jpg" },
-      { label: "Clash Squad", mode: "Clash Squad", img: "https://i.imgur.com/Mv0QBMV.jpg" },
-      { label: "Lone Wolf",   mode: "Lone Wolf",   img: "https://i.imgur.com/oCO2pj9.jpg" },
-      { label: "CS 1v1 2v2",  mode: "1v1",         img: "https://i.imgur.com/3kNvPdU.jpg" },
+      { label: "BR Match",    mode: "BR Match",    img: freefireBanner },
+      { label: "Clash Squad", mode: "Clash Squad", img: freefireAction },
+      { label: "Lone Wolf",   mode: "Lone Wolf",   img: freefireThumb },
+      { label: "CS 1v1 2v2",  mode: "1v1",         img: freefireAction },
     ],
   },
   {
     label: "PUBG",
     game_type: "PUBG",
     modes: [
-      { label: "BR Match",    mode: "BR Match",    img: "https://i.imgur.com/8rMHOdJ.jpg" },
-      { label: "Clash Squad", mode: "Clash Squad", img: "https://i.imgur.com/Mv0QBMV.jpg" },
-      { label: "Lone Wolf",   mode: "Lone Wolf",   img: "https://i.imgur.com/oCO2pj9.jpg" },
-      { label: "1v1 / 2v2",   mode: "1v1",         img: "https://i.imgur.com/3kNvPdU.jpg" },
+      { label: "BR Match",    mode: "BR Match",    img: pubgBanner },
+      { label: "Clash Squad", mode: "Clash Squad", img: pubgAction },
+      { label: "Lone Wolf",   mode: "Lone Wolf",   img: pubgThumb },
+      { label: "1v1 / 2v2",   mode: "1v1",         img: pubgAction },
     ],
   },
   {
     label: "LUDO AND FREE MATCH",
     game_type: "Ludo",
     modes: [
-      { label: "Ludo Match",  mode: "Ludo Match",  img: "https://i.imgur.com/qKkFJfj.jpg" },
-      { label: "Free Match",  mode: "Free Match",  img: "https://i.imgur.com/Q3zKh8R.jpg" },
+      { label: "Ludo Match",  mode: "Ludo Match",  img: ludoBanner },
+      { label: "Free Match",  mode: "Free Match",  img: ludoAction },
     ],
   },
 ];

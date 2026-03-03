@@ -8,8 +8,8 @@ const navItems = [
   { label: "Dashboard", path: "/dashboard", icon: "🏠" },
   { label: "Tasks", path: "/dashboard/tasks", icon: "🎯" },
   { label: "Tournaments", path: "/dashboard/tournaments", icon: "🏆" },
-  { label: "Deposit", path: "/dashboard/deposit", icon: "💰" },
-  { label: "Withdraw", path: "/dashboard/withdraw", icon: "💸" },
+  { label: "Results", path: "/dashboard/results", icon: "📊" },
+  { label: "Profile", path: "/dashboard/profile", icon: "👤" },
 ];
 
 const DashboardNav = () => {
