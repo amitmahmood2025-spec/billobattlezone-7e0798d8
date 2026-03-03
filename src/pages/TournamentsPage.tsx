@@ -266,7 +266,7 @@ const TournamentsPage = () => {
     tournaments.filter(
       (t) =>
         t.game_type?.toLowerCase().includes(game_type.toLowerCase()) &&
-        (t.mode?.toLowerCase().includes(mode.toLowerCase()) ||
+        ((t as any).mode?.toLowerCase().includes(mode.toLowerCase()) ||
           t.title?.toLowerCase().includes(mode.toLowerCase()))
     ).length;
 
@@ -274,7 +274,7 @@ const TournamentsPage = () => {
     ? tournaments.filter(
         (t) =>
           t.game_type?.toLowerCase().includes(selected.game_type.toLowerCase()) &&
-          (t.mode?.toLowerCase().includes(selected.mode.toLowerCase()) ||
+          ((t as any).mode?.toLowerCase().includes(selected.mode.toLowerCase()) ||
             t.title?.toLowerCase().includes(selected.mode.toLowerCase()))
       )
     : [];

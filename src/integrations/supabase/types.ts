@@ -457,7 +457,11 @@ export type Database = {
           entry_fee_type: Database["public"]["Enums"]["entry_fee_type"]
           game_type: string
           id: string
+          map: string | null
+          match_type: string | null
           max_participants: number | null
+          per_kill: number | null
+          perspective: string | null
           prize_pool: number
           room_id: string | null
           room_password: string | null
@@ -465,6 +469,7 @@ export type Database = {
           starts_at: string
           status: Database["public"]["Enums"]["tournament_status"]
           title: string
+          tournament_no: number | null
         }
         Insert: {
           created_at?: string
@@ -475,7 +480,11 @@ export type Database = {
           entry_fee_type?: Database["public"]["Enums"]["entry_fee_type"]
           game_type: string
           id?: string
+          map?: string | null
+          match_type?: string | null
           max_participants?: number | null
+          per_kill?: number | null
+          perspective?: string | null
           prize_pool?: number
           room_id?: string | null
           room_password?: string | null
@@ -483,6 +492,7 @@ export type Database = {
           starts_at: string
           status?: Database["public"]["Enums"]["tournament_status"]
           title: string
+          tournament_no?: number | null
         }
         Update: {
           created_at?: string
@@ -493,7 +503,11 @@ export type Database = {
           entry_fee_type?: Database["public"]["Enums"]["entry_fee_type"]
           game_type?: string
           id?: string
+          map?: string | null
+          match_type?: string | null
           max_participants?: number | null
+          per_kill?: number | null
+          perspective?: string | null
           prize_pool?: number
           room_id?: string | null
           room_password?: string | null
@@ -501,6 +515,7 @@ export type Database = {
           starts_at?: string
           status?: Database["public"]["Enums"]["tournament_status"]
           title?: string
+          tournament_no?: number | null
         }
         Relationships: []
       }
