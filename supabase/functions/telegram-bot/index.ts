@@ -217,12 +217,12 @@ bot.command("start", async (ctx) => {
     const wallet = profile?.wallets;
 
     const welcomeText = isNew
-      ? `🎮 *Welcome to Billo Battle Zone!*\n\n` +
+      ? `🏭 *Welcome to Credit Factory!*\n\n` +
         `হ্যালো ${telegramUser.first_name}! আপনি সফলভাবে রেজিস্টার হয়েছেন।\n\n` +
         `🎁 *Welcome Bonus:* +10 Credits পেয়েছেন!\n\n` +
         `${formatBalance(wallet?.credits || 10, wallet?.cash || 0)}\n\n` +
-        `প্রতিদিন tasks complete করুন, credits earn করুন এবং tournaments জিতে real cash prize নিন! 🏆`
-      : `🎮 *Billo Battle Zone-এ স্বাগতম!*\n\n` +
+        `প্রতিদিন missions complete করুন, credits earn করুন এবং tournaments জিতে real cash prize নিন! 🏆`
+      : `🏭 *Credit Factory তে স্বাগতম!*\n\n` +
         `হ্যালো আবার, ${telegramUser.first_name}! 👋\n\n` +
         `${formatBalance(wallet?.credits || 0, wallet?.cash || 0)}`;
 
@@ -443,7 +443,7 @@ bot.command("withdraw", async (ctx) => {
 
 bot.command("help", async (ctx) => {
   await ctx.reply(
-    `🤖 *Billo Battle Zone Bot*\n\n` +
+    `🤖 *Credit Factory Bot*\n\n` +
       `📋 *Commands:*\n` +
       `/start — শুরু করুন\n` +
       `/balance — Wallet দেখুন\n` +
@@ -627,7 +627,7 @@ bot.callbackQuery("back_main", async (ctx) => {
     const wallet = profile?.wallets;
 
     await ctx.editMessageText(
-      `🎮 *Billo Battle Zone*\n\n` +
+      `🏭 *Credit Factory*\n\n` +
         `হ্যালো ${telegramUser.first_name}! 👋\n\n` +
         `${formatBalance(wallet?.credits || 0, wallet?.cash || 0)}\n\n` +
         `কী করতে চান?`,
@@ -647,11 +647,11 @@ bot.on("inline_query", async (ctx) => {
     {
       type: "article",
       id: "invite",
-      title: "🎮 Billo Battle Zone-এ Join করুন",
+      title: "🏭 Credit Factory তে Join করুন",
       description: "Free credits earn করুন এবং tournaments জিতুন!",
       input_message_content: {
         message_text:
-          `🎮 *Billo Battle Zone*\n\n` +
+          `🏭 *Credit Factory*\n\n` +
           `Free credits earn করুন daily tasks দিয়ে!\n` +
           `Real tournaments join করুন এবং cash prize জিতুন! 💰\n\n` +
           `${query || MINI_APP_URL}`,
@@ -671,7 +671,7 @@ Deno.serve(async (req: Request) => {
 
   // Health check
   if (url.pathname === "/health") {
-    return new Response(JSON.stringify({ status: "ok", bot: "Billo BBZ Bot" }), {
+    return new Response(JSON.stringify({ status: "ok", bot: "Credit Factory Bot" }), {
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -695,5 +695,5 @@ Deno.serve(async (req: Request) => {
     return handleUpdate(req);
   }
 
-  return new Response("Billo BBZ Telegram Bot is running! 🎮", { status: 200 });
+  return new Response("Credit Factory Telegram Bot is running! 🏭", { status: 200 });
 });
