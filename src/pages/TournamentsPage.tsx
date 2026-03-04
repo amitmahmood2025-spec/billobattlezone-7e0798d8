@@ -16,8 +16,6 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 
-// ─── Game & Mode Config ───────────────────────────────────────────────────────
-
 import freefireBanner from "@/assets/games/freefire-banner.jpg";
 import freefireAction from "@/assets/games/freefire-action.jpg";
 import freefireThumb from "@/assets/games/freefire-thumb.jpg";
@@ -36,30 +34,34 @@ const GAME_SECTIONS = [
       { label: "BR Match",    mode: "BR Match",    img: freefireBanner },
       { label: "Clash Squad", mode: "Clash Squad", img: freefireAction },
       { label: "Lone Wolf",   mode: "Lone Wolf",   img: freefireThumb },
-      { label: "CS 1v1 2v2",  mode: "1v1",         img: freefireAction },
+      { label: "CS 1v1",      mode: "CS 1v1",      img: freefireAction },
+      { label: "CS 1v2",      mode: "CS 1v2",      img: freefireThumb },
+      { label: "CS 1v3",      mode: "CS 1v3",      img: freefireBanner },
+      { label: "CS 1v4",      mode: "CS 1v4",      img: freefireAction },
     ],
   },
   {
-    label: "PUBG",
+    label: "PUBG MOBILE",
     game_type: "PUBG",
     modes: [
       { label: "BR Match",    mode: "BR Match",    img: pubgBanner },
-      { label: "Clash Squad", mode: "Clash Squad", img: pubgAction },
-      { label: "Lone Wolf",   mode: "Lone Wolf",   img: pubgThumb },
-      { label: "1v1 / 2v2",   mode: "1v1",         img: pubgAction },
+      { label: "Arena TDM",   mode: "Arena TDM",   img: pubgAction },
+      { label: "1v1",         mode: "1v1",         img: pubgThumb },
+      { label: "2v2",         mode: "2v2",         img: pubgAction },
     ],
   },
   {
-    label: "LUDO AND FREE MATCH",
+    label: "LUDO",
     game_type: "Ludo",
     modes: [
-      { label: "Ludo Match",  mode: "Ludo Match",  img: ludoBanner },
-      { label: "Free Match",  mode: "Free Match",  img: ludoAction },
+      { label: "Classic 1v1", mode: "Classic 1v1", img: ludoBanner },
+      { label: "Classic 2v2", mode: "Classic 2v2", img: ludoAction },
+      { label: "Quick 1v1",   mode: "Quick 1v1",   img: ludoThumb },
     ],
   },
 ];
 
-// ─── Countdown Hook ───────────────────────────────────────────────────────────
+// ─── Countdown ────────────────────────────────────────────────────────────────
 
 function useCountdown(targetDate: string) {
   const [timeLeft, setTimeLeft] = useState("");
@@ -106,35 +108,33 @@ const TournamentCard = ({
   const canPayWithCredits = tournament.entry_fee_type !== "cash" && (wallet?.credits || 0) >= tournament.entry_fee;
   const canPayWithCash = tournament.entry_fee_type !== "credits" && (wallet?.cash || 0) >= tournament.entry_fee;
 
-  // Optional extra fields — add these columns to your Supabase tournaments table
-  const perKill     = (tournament as any).per_kill     ?? "—";
-  const matchType   = (tournament as any).match_type   ?? "Solo";
-  const map         = (tournament as any).map          ?? "Bermuda";
-  const perspective = (tournament as any).perspective  ?? "TPP";
-  const tournamentNo = (tournament as any).tournament_no
-    ?? String(index + 1).padStart(5, "0");
+  const perKill = tournament.per_kill ?? 0;
+  const matchType = tournament.match_type ?? "Solo";
+  const map = tournament.map ?? "—";
+  const perspective = tournament.perspective ?? "TPP";
+  const tournamentNo = tournament.tournament_no ?? String(index + 1).padStart(5, "0");
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08 }}
-      className="rounded-2xl overflow-hidden border border-white/10 bg-[#0f1923]"
+      transition={{ delay: index * 0.06 }}
+      className="rounded-2xl overflow-hidden border border-neon-blue/20 bg-background/80 backdrop-blur-xl shadow-[0_0_30px_-10px_hsl(var(--neon-blue)/0.15)]"
     >
-      {/* Top Row */}
+      {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-2 relative">
         <img
           src={gameImage.thumb}
           alt={tournament.game_type}
-          className="w-12 h-12 rounded-xl object-cover border border-white/10"
+          className="w-12 h-12 rounded-xl object-cover border border-neon-blue/30 shadow-[0_0_10px_hsl(var(--neon-blue)/0.2)]"
         />
         <div className="flex-1 pr-16">
-          <p className="font-display font-bold text-white text-base leading-tight">{tournament.title}</p>
-          <p className="text-xs text-orange-400 font-medium mt-0.5">
+          <p className="font-display font-bold text-foreground text-base leading-tight">{tournament.title}</p>
+          <p className="text-xs text-primary font-medium mt-0.5">
             {format(new Date(tournament.starts_at), "yyyy-MM-dd hh:mm aa")}
           </p>
         </div>
-        <span className="absolute top-3 right-3 text-xs font-bold bg-blue-600 text-white px-2 py-0.5 rounded-md">
+        <span className="absolute top-3 right-3 text-[10px] font-bold bg-primary/90 text-primary-foreground px-2.5 py-1 rounded-md shadow-[0_0_10px_hsl(var(--primary)/0.3)]">
           #{tournamentNo}
         </span>
       </div>
@@ -146,9 +146,9 @@ const TournamentCard = ({
           { label: "PER KILL",  value: String(perKill) },
           { label: "ENTRY FEE", value: `${tournament.entry_fee_type === "cash" ? "৳" : ""}${tournament.entry_fee}${tournament.entry_fee_type === "credits" ? " Cr" : ""}` },
         ].map((item) => (
-          <div key={item.label} className="bg-[#1a2535] rounded-xl py-3 text-center">
-            <p className="text-[10px] text-gray-400 mb-1 uppercase tracking-wide">{item.label}</p>
-            <p className="font-display font-bold text-white text-base">{item.value}</p>
+          <div key={item.label} className="glass rounded-xl py-3 text-center border border-neon-blue/10">
+            <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">{item.label}</p>
+            <p className="font-display font-bold text-foreground text-base">{item.value}</p>
           </div>
         ))}
       </div>
@@ -156,22 +156,26 @@ const TournamentCard = ({
       {/* Match Meta */}
       <div className="grid grid-cols-3 gap-2 px-4 pb-3 text-center">
         {[matchType, map, perspective].map((v) => (
-          <p key={v} className="text-xs text-gray-400 font-medium">{v}</p>
+          <p key={v} className="text-xs text-muted-foreground font-medium glass rounded-lg py-1.5">{v}</p>
         ))}
       </div>
 
-      {/* Progress + Join */}
+      {/* Spots Progress */}
       <div className="px-4 pb-3">
-        <div className="w-full bg-white/10 rounded-full h-1.5 mb-2">
-          <div
-            className="h-1.5 rounded-full bg-orange-500 transition-all duration-500"
-            style={{ width: `${fillPct}%` }}
+        <div className="w-full bg-muted/30 rounded-full h-1.5 mb-2 overflow-hidden">
+          <motion.div
+            className="h-1.5 rounded-full bg-gradient-to-r from-primary to-neon-blue"
+            initial={{ width: 0 }}
+            animate={{ width: `${fillPct}%` }}
+            transition={{ duration: 1, ease: "easeOut" }}
           />
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-400">Only {spotsLeft} spots left</p>
+          <p className="text-xs text-muted-foreground">
+            {spotsLeft > 0 ? `Only ${spotsLeft} spots left` : "Full"}
+          </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">{filled}/{maxSpots}</span>
+            <span className="text-xs text-muted-foreground">{filled}/{maxSpots}</span>
             {joined ? (
               <span className="flex items-center gap-1 text-green-400 text-xs font-bold">
                 <CheckCircle className="w-3 h-3" /> Joined
@@ -182,7 +186,7 @@ const TournamentCard = ({
                   <button
                     onClick={() => onJoin(tournament, true)}
                     disabled={isJoining || !canPayWithCredits}
-                    className="bg-green-500 hover:bg-green-400 disabled:opacity-40 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition"
+                    className="bg-primary hover:bg-primary/80 disabled:opacity-40 text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
                   >
                     {isJoining ? <Loader2 className="w-3 h-3 animate-spin" /> : "JOIN NOW"}
                   </button>
@@ -191,7 +195,7 @@ const TournamentCard = ({
                   <button
                     onClick={() => onJoin(tournament, false)}
                     disabled={isJoining || !canPayWithCash}
-                    className="bg-green-500 hover:bg-green-400 disabled:opacity-40 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition"
+                    className="bg-green-500 hover:bg-green-400 disabled:opacity-40 text-foreground text-xs font-bold px-3 py-1.5 rounded-lg transition"
                   >
                     {isJoining ? <Loader2 className="w-3 h-3 animate-spin" /> : `PAY ৳${tournament.entry_fee}`}
                   </button>
@@ -203,24 +207,28 @@ const TournamentCard = ({
       </div>
 
       {/* Room Details & Prize Pool */}
-      <div className="grid grid-cols-2 border-t border-white/10">
+      <div className="grid grid-cols-2 border-t border-neon-blue/10">
         <button
           onClick={() => joined && onViewRoom(tournament.id)}
           disabled={roomLoading || !joined}
-          className="flex items-center justify-center gap-2 py-3 text-sm text-blue-400 hover:bg-white/5 disabled:opacity-40 transition border-r border-white/10"
+          className="flex items-center justify-center gap-2 py-3 text-sm text-neon-blue hover:bg-neon-blue/5 disabled:opacity-40 transition border-r border-neon-blue/10"
         >
           {roomLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
           Room Details
         </button>
-        <button className="flex items-center justify-center gap-2 py-3 text-sm text-yellow-400 hover:bg-white/5 transition">
+        <button className="flex items-center justify-center gap-2 py-3 text-sm text-accent hover:bg-accent/5 transition">
           <Trophy className="w-4 h-4" /> Prize Pool
         </button>
       </div>
 
-      {/* Countdown Banner */}
-      <div className="bg-green-500 flex items-center justify-center gap-2 py-2.5">
-        <Clock className="w-4 h-4 text-white" />
-        <span className="text-white font-bold text-sm tracking-wider">
+      {/* Countdown */}
+      <div className={`flex items-center justify-center gap-2 py-2.5 ${
+        tournament.status === "live"
+          ? "bg-green-500/90"
+          : "bg-gradient-to-r from-primary/90 to-neon-blue/90"
+      }`}>
+        <Clock className="w-4 h-4 text-primary-foreground" />
+        <span className="text-primary-foreground font-bold text-sm tracking-wider">
           {tournament.status === "live" ? "🔴 LIVE NOW" : `STARTS IN ${countdown}`}
         </span>
       </div>
@@ -272,20 +280,19 @@ const TournamentsPage = () => {
     }
   };
 
+  // Filter by game_type AND mode column
   const modeCount = (game_type: string, mode: string) =>
     tournaments.filter(
       (t) =>
-        t.game_type?.toLowerCase().includes(game_type.toLowerCase()) &&
-        ((t as any).mode?.toLowerCase().includes(mode.toLowerCase()) ||
-          t.title?.toLowerCase().includes(mode.toLowerCase()))
+        t.game_type?.toLowerCase() === game_type.toLowerCase() &&
+        t.mode?.toLowerCase() === mode.toLowerCase()
     ).length;
 
   const filteredTournaments = selected
     ? tournaments.filter(
         (t) =>
-          t.game_type?.toLowerCase().includes(selected.game_type.toLowerCase()) &&
-          ((t as any).mode?.toLowerCase().includes(selected.mode.toLowerCase()) ||
-            t.title?.toLowerCase().includes(selected.mode.toLowerCase()))
+          t.game_type?.toLowerCase() === selected.game_type.toLowerCase() &&
+          t.mode?.toLowerCase() === selected.mode.toLowerCase()
       )
     : [];
 
@@ -298,21 +305,21 @@ const TournamentsPage = () => {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <h1 className="font-display font-bold text-2xl flex items-center justify-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-400" /> Tournaments
+            <Trophy className="w-6 h-6 text-accent" /> Tournaments
           </h1>
           <p className="text-muted-foreground text-sm mt-1">Join tournaments and win cash prizes!</p>
         </motion.div>
 
         {/* Balance */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="glass rounded-xl p-4 flex items-center gap-3">
+          <div className="glass rounded-xl p-4 flex items-center gap-3 border border-neon-blue/10">
             <Coins className="w-8 h-8 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Credits</p>
               <p className="font-display font-bold text-xl text-primary">{wallet?.credits?.toFixed(0) || "0"}</p>
             </div>
           </div>
-          <div className="glass rounded-xl p-4 flex items-center gap-3">
+          <div className="glass rounded-xl p-4 flex items-center gap-3 border border-neon-blue/10">
             <Banknote className="w-8 h-8 text-green-400" />
             <div>
               <p className="text-sm text-muted-foreground">Cash</p>
@@ -323,7 +330,6 @@ const TournamentsPage = () => {
 
         <AnimatePresence mode="wait">
           {!selected ? (
-            /* ── Mode Selection ── */
             <motion.div key="mode-select" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               {loading ? (
                 <div className="glass rounded-xl p-12 text-center">
@@ -334,25 +340,40 @@ const TournamentsPage = () => {
                 <div className="space-y-8">
                   {GAME_SECTIONS.map((section) => (
                     <div key={section.game_type}>
-                      <h2 className="font-display font-bold text-lg text-center tracking-widest mb-4">
+                      <h2 className="font-display font-bold text-lg text-center tracking-widest mb-4 neon-text">
                         {section.label}
                       </h2>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {section.modes.map((m) => (
-                          <motion.div
-                            key={m.mode}
-                            whileTap={{ scale: 0.97 }}
-                            className="relative rounded-xl overflow-hidden cursor-pointer group h-32"
-                            onClick={() => setSelected({ game_type: section.game_type, mode: m.mode, label: m.label })}
-                          >
-                            <img src={m.img} alt={m.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                            <div className="absolute bottom-2 left-3">
-                              <p className="font-display font-bold text-white text-sm">{m.label}</p>
-                              <p className="text-xs text-gray-300">{modeCount(section.game_type, m.mode)} matches found</p>
-                            </div>
-                          </motion.div>
-                        ))}
+                        {section.modes.map((m) => {
+                          const count = modeCount(section.game_type, m.mode);
+                          return (
+                            <motion.div
+                              key={m.mode}
+                              whileTap={{ scale: 0.97 }}
+                              whileHover={{ scale: 1.02 }}
+                              className="relative rounded-xl overflow-hidden cursor-pointer group h-32 border border-neon-blue/20 shadow-[0_0_15px_-5px_hsl(var(--neon-blue)/0.15)]"
+                              onClick={() => setSelected({ game_type: section.game_type, mode: m.mode, label: m.label })}
+                            >
+                              <img src={m.img} alt={m.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                              <div className="absolute bottom-2 left-3 right-3">
+                                <p className="font-display font-bold text-foreground text-sm">{m.label}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {count > 0 ? (
+                                    <span className="text-primary font-semibold">{count} matches live</span>
+                                  ) : (
+                                    "No matches yet"
+                                  )}
+                                </p>
+                              </div>
+                              {count > 0 && (
+                                <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-md animate-pulse-neon">
+                                  {count}
+                                </span>
+                              )}
+                            </motion.div>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -360,24 +381,25 @@ const TournamentsPage = () => {
               )}
             </motion.div>
           ) : (
-            /* ── Tournament List ── */
             <motion.div key="list" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
               <button onClick={() => setSelected(null)} className="flex items-center gap-2 text-sm text-primary mb-4 hover:underline">
-                <ArrowLeft className="w-4 h-4" /> Back
+                <ArrowLeft className="w-4 h-4" /> Back to Modes
               </button>
 
-              <div className="flex items-center gap-3 mb-5">
-                <img src={getGameImage(selected.game_type).thumb} alt="" className="w-10 h-10 rounded-xl object-cover" />
+              <div className="flex items-center gap-3 mb-5 glass rounded-xl p-3 border border-neon-blue/10">
+                <img src={getGameImage(selected.game_type).thumb} alt="" className="w-12 h-12 rounded-xl object-cover border border-neon-blue/20" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Mode</p>
-                  <h2 className="font-display font-bold text-xl">{selected.label.toUpperCase()}</h2>
+                  <p className="text-xs text-muted-foreground">{selected.game_type}</p>
+                  <h2 className="font-display font-bold text-xl text-foreground">{selected.label.toUpperCase()}</h2>
                 </div>
+                <span className="ml-auto text-sm font-bold text-primary">{filteredTournaments.length} matches</span>
               </div>
 
               {filteredTournaments.length === 0 ? (
-                <div className="glass rounded-xl p-12 text-center">
+                <div className="glass rounded-xl p-12 text-center border border-neon-blue/10">
                   <Trophy className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No tournaments available for this mode right now</p>
+                  <p className="text-muted-foreground font-medium">No tournaments available for this mode right now</p>
+                  <p className="text-xs text-muted-foreground mt-1">Check back later or try another mode</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -405,7 +427,7 @@ const TournamentsPage = () => {
 
       {/* Room Info Dialog */}
       <Dialog open={!!roomInfo} onOpenChange={() => setRoomInfo(null)}>
-        <DialogContent>
+        <DialogContent className="border-neon-blue/20">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Lock className="w-5 h-5 text-primary" /> Room Information
@@ -413,19 +435,19 @@ const TournamentsPage = () => {
             <DialogDescription>Only you (joined player) can see this</DialogDescription>
           </DialogHeader>
           {roomInfo?.message ? (
-            <div className="glass rounded-xl p-6 text-center">
+            <div className="glass rounded-xl p-6 text-center border border-neon-blue/10">
               <Clock className="w-8 h-8 mx-auto text-primary mb-2" />
               <p className="text-muted-foreground">{roomInfo.message}</p>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="glass rounded-xl p-4">
+              <div className="glass rounded-xl p-4 border border-neon-blue/10">
                 <p className="text-xs text-muted-foreground mb-1">Room / Custom ID</p>
                 <p className="font-display font-bold text-xl text-primary select-all">
                   {roomInfo?.room_id || "Not set yet"}
                 </p>
               </div>
-              <div className="glass rounded-xl p-4">
+              <div className="glass rounded-xl p-4 border border-neon-blue/10">
                 <p className="text-xs text-muted-foreground mb-1">Password</p>
                 <p className="font-display font-bold text-xl text-primary select-all">
                   {roomInfo?.room_password || "Not set yet"}
@@ -440,4 +462,3 @@ const TournamentsPage = () => {
 };
 
 export default TournamentsPage;
-      

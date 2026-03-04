@@ -6,6 +6,7 @@ export interface Tournament {
   id: string;
   title: string;
   game_type: string;
+  mode: string | null;
   description: string | null;
   entry_fee: number;
   entry_fee_type: "credits" | "cash" | "both";
@@ -16,6 +17,11 @@ export interface Tournament {
   starts_at: string;
   ends_at: string | null;
   rules: string | null;
+  match_type: string | null;
+  map: string | null;
+  perspective: string | null;
+  per_kill: number | null;
+  tournament_no: number | null;
 }
 
 export interface TournamentEntry {
