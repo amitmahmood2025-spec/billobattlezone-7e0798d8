@@ -460,6 +460,7 @@ export type Database = {
           map: string | null
           match_type: string | null
           max_participants: number | null
+          mode: string | null
           per_kill: number | null
           perspective: string | null
           prize_pool: number
@@ -483,6 +484,7 @@ export type Database = {
           map?: string | null
           match_type?: string | null
           max_participants?: number | null
+          mode?: string | null
           per_kill?: number | null
           perspective?: string | null
           prize_pool?: number
@@ -506,6 +508,7 @@ export type Database = {
           map?: string | null
           match_type?: string | null
           max_participants?: number | null
+          mode?: string | null
           per_kill?: number | null
           perspective?: string | null
           prize_pool?: number

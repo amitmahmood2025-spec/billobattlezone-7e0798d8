@@ -101,10 +101,11 @@ const TournamentManager = () => {
     try {
       const payload = {
         title: form.title, game_type: form.game_type,
+        mode: form.game_mode || null,
         match_type: form.match_type || null,
         map: form.map || null,
         perspective: form.perspective || null,
-        description: form.description ? `${form.game_mode ? `[${form.game_mode}] ` : ""}${form.description}` : (form.game_mode || null),
+        description: form.description || null,
         entry_fee: Number(form.entry_fee), entry_fee_type: form.entry_fee_type,
         prize_pool: Number(form.prize_pool),
         max_participants: form.max_participants ? Number(form.max_participants) : null,
