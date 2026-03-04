@@ -17,6 +17,7 @@ import {
   Plus, Trash2, Pencil, Users, Trophy, Loader2, Eye, Medal, Gamepad2,
 } from "lucide-react";
 import { format } from "date-fns";
+import { GAME_CONFIGS, getGameConfig } from "@/config/gameModeConfig";
 
 interface Tournament {
   id: string;
@@ -47,7 +48,8 @@ interface TournamentEntry {
 }
 
 const emptyForm = {
-  title: "", game_type: "", description: "", entry_fee: "0",
+  title: "", game_type: "", game_mode: "", map: "", perspective: "", match_type: "",
+  description: "", entry_fee: "0",
   entry_fee_type: "credits", prize_pool: "0", max_participants: "",
   starts_at: "", ends_at: "", rules: "", room_id: "", room_password: "",
 };
@@ -99,7 +101,10 @@ const TournamentManager = () => {
     try {
       const payload = {
         title: form.title, game_type: form.game_type,
-        description: form.description || null,
+        match_type: form.match_type || null,
+        map: form.map || null,
+        perspective: form.perspective || null,
+        description: form.description ? `${form.game_mode ? `[${form.game_mode}] ` : ""}${form.description}` : (form.game_mode || null),
         entry_fee: Number(form.entry_fee), entry_fee_type: form.entry_fee_type,
         prize_pool: Number(form.prize_pool),
         max_participants: form.max_participants ? Number(form.max_participants) : null,
@@ -131,7 +136,7 @@ const TournamentManager = () => {
   const handleEdit = (t: Tournament & { room_id?: string; room_password?: string }) => {
     setEditingId(t.id);
     setForm({
-      title: t.title, game_type: t.game_type, description: t.description || "",
+      title: t.title, game_type: t.game_type, game_mode: "", map: (t as any).map || "", perspective: (t as any).perspective || "", match_type: (t as any).match_type || "", description: t.description || "",
       entry_fee: String(t.entry_fee), entry_fee_type: t.entry_fee_type,
       prize_pool: String(t.prize_pool),
       max_participants: t.max_participants ? String(t.max_participants) : "",
@@ -288,7 +293,78 @@ const TournamentManager = () => {
           </DialogHeader>
           <div className="space-y-3">
             <Input placeholder="Tournament Title *" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-            <Input placeholder="Game Type (e.g. Free Fire, PUBG) *" value={form.game_type} onChange={(e) => setForm({ ...form, game_type: e.target.value })} />
+            
+            {/* Game Selection */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Game *</label>
+                <Select value={form.game_type} onValueChange={(v) => setForm({ ...form, game_type: v, game_mode: "", map: "", perspective: "", match_type: "" })}>
+                  <SelectTrigger><SelectValue placeholder="Game select করুন" /></SelectTrigger>
+                  <SelectContent>
+                    {GAME_CONFIGS.map((g) => (
+                      <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Game Mode *</label>
+                <Select value={form.game_mode} onValueChange={(v) => setForm({ ...form, game_mode: v })} disabled={!form.game_type}>
+                  <SelectTrigger><SelectValue placeholder="Mode select করুন" /></SelectTrigger>
+                  <SelectContent>
+                    {(getGameConfig(form.game_type)?.modes || []).map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Map, Perspective, Match Type - contextual */}
+            {form.game_type && getGameConfig(form.game_type) && (
+              <div className="grid grid-cols-3 gap-3">
+                {(getGameConfig(form.game_type)?.maps?.length ?? 0) > 0 && (
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Map</label>
+                    <Select value={form.map} onValueChange={(v) => setForm({ ...form, map: v })}>
+                      <SelectTrigger><SelectValue placeholder="Map" /></SelectTrigger>
+                      <SelectContent>
+                        {getGameConfig(form.game_type)!.maps!.map((m) => (
+                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {(getGameConfig(form.game_type)?.perspectives?.length ?? 0) > 0 && (
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Perspective</label>
+                    <Select value={form.perspective} onValueChange={(v) => setForm({ ...form, perspective: v })}>
+                      <SelectTrigger><SelectValue placeholder="View" /></SelectTrigger>
+                      <SelectContent>
+                        {getGameConfig(form.game_type)!.perspectives!.map((p) => (
+                          <SelectItem key={p} value={p}>{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {(getGameConfig(form.game_type)?.matchTypes?.length ?? 0) > 0 && (
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Match Type</label>
+                    <Select value={form.match_type} onValueChange={(v) => setForm({ ...form, match_type: v })}>
+                      <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+                      <SelectContent>
+                        {getGameConfig(form.game_type)!.matchTypes!.map((mt) => (
+                          <SelectItem key={mt} value={mt}>{mt}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
+
             <Input placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             <div className="grid grid-cols-2 gap-3">
               <Input type="number" placeholder="Entry Fee" value={form.entry_fee} onChange={(e) => setForm({ ...form, entry_fee: e.target.value })} />

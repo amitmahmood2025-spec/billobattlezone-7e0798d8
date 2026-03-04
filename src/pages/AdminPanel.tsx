@@ -7,13 +7,14 @@ import DashboardNav from "@/components/dashboard/DashboardNav";
 import TournamentManager from "@/components/admin/TournamentManager";
 import AdminManager from "@/components/admin/AdminManager";
 import TaskManager from "@/components/admin/TaskManager";
+import TelegramTaskManager from "@/components/admin/TelegramTaskManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   Users, CreditCard, Wallet, Settings, CheckCircle, XCircle,
-  Loader2, Shield, TrendingUp, DollarSign,
+  Loader2, Shield, TrendingUp, DollarSign, Bot,
 } from "lucide-react";
 
 interface PendingDeposit {
@@ -190,11 +191,12 @@ const AdminPanel = () => {
         </motion.div>
 
         <Tabs defaultValue="deposits" className="w-full">
-          <TabsList className="w-full grid grid-cols-6 glass">
+          <TabsList className="w-full grid grid-cols-7 glass">
             <TabsTrigger value="deposits">Deposits ({stats.pendingDeposits})</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals ({stats.pendingWithdrawals})</TabsTrigger>
             <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="telegram" className="flex items-center gap-1"><Bot className="w-3 h-3" /> Telegram</TabsTrigger>
             <TabsTrigger value="admins">Admins</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -259,6 +261,10 @@ const AdminPanel = () => {
 
           <TabsContent value="admins" className="mt-4">
             <AdminManager />
+          </TabsContent>
+
+          <TabsContent value="telegram" className="mt-4">
+            <TelegramTaskManager />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-4 space-y-4">
