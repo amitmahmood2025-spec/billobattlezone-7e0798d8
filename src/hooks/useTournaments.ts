@@ -137,6 +137,8 @@ export const useTournaments = (
         profile_id: profileId,
         fee_paid: tournament.entry_fee,
         fee_type: payWithCredits ? "credits" : "cash",
+        game_id: gameId,
+        game_name: gameName,
       });
 
       // Update participant count
