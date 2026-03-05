@@ -150,6 +150,7 @@ const TournamentManager = () => {
       rules: t.rules || "",
       room_id: (t as unknown as Record<string, unknown>).room_id as string || "",
       room_password: (t as unknown as Record<string, unknown>).room_password as string || "",
+      live_url: (t as unknown as Record<string, unknown>).live_url as string || "",
     });
     setShowForm(true);
   };
