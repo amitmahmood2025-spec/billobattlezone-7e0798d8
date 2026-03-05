@@ -272,7 +272,7 @@ const TournamentsPage = () => {
   } | null>(null);
   const [roomLoading, setRoomLoading] = useState(false);
   const [selected, setSelected] = useState<{ game_type: string; mode: string; label: string } | null>(null);
-
+  const [liveStream, setLiveStream] = useState<Tournament | null>(null);
   // Join modal state
   const [joinModal, setJoinModal] = useState<{
     tournament: Tournament; useCredits: boolean;
