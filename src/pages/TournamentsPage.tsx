@@ -86,7 +86,7 @@ function useCountdown(targetDate: string) {
 // ─── Tournament Card ──────────────────────────────────────────────────────────
 
 const TournamentCard = ({
-  tournament, index, joining, hasJoined, onJoin, onViewRoom, roomLoading, wallet, onRules,
+  tournament, index, joining, hasJoined, onJoin, onViewRoom, roomLoading, wallet, onRules, onLiveStream,
 }: {
   tournament: Tournament;
   index: number;
@@ -97,6 +97,7 @@ const TournamentCard = ({
   roomLoading: boolean;
   wallet: any;
   onRules: (t: Tournament) => void;
+  onLiveStream: (t: Tournament) => void;
 }) => {
   const countdown = useCountdown(tournament.starts_at);
   const joined = hasJoined(tournament.id);
@@ -230,15 +231,28 @@ const TournamentCard = ({
         </button>
       </div>
 
-      {/* Countdown */}
-      <div className={`flex items-center justify-center gap-2 py-2.5 ${
-        tournament.status === "live"
-          ? "bg-green-500/90"
-          : "bg-gradient-to-r from-primary/90 to-neon-blue/90"
-      }`}>
-        <Clock className="w-4 h-4 text-primary-foreground" />
-        <span className="text-primary-foreground font-bold text-sm tracking-wider">
-          {tournament.status === "live" ? "🔴 LIVE NOW" : `STARTS IN ${countdown}`}
+      {/* Countdown / Live Banner */}
+      <div
+        onClick={() => {
+          if (tournament.status === "live" && tournament.live_url) {
+            onLiveStream(tournament);
+          }
+        }}
+        className={`flex items-center justify-center gap-2 py-2.5 ${
+          tournament.status === "live"
+            ? "bg-gradient-to-r from-neon-blue/90 to-primary/90 cursor-pointer relative overflow-hidden"
+            : "bg-gradient-to-r from-primary/90 to-neon-blue/90"
+        }`}
+      >
+        {tournament.status === "live" && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite]" style={{ backgroundSize: '200% 100%' }} />
+            <div className="absolute inset-0 border border-neon-blue/50 animate-pulse rounded-b-2xl" />
+          </>
+        )}
+        <Clock className={`w-4 h-4 ${tournament.status === "live" ? "text-white" : "text-primary-foreground"}`} />
+        <span className={`font-bold text-sm tracking-wider ${tournament.status === "live" ? "text-white" : "text-primary-foreground"}`}>
+          {tournament.status === "live" ? "🔴 LIVE NOW — TAP TO WATCH" : `STARTS IN ${countdown}`}
         </span>
       </div>
     </motion.div>
@@ -258,7 +272,7 @@ const TournamentsPage = () => {
   } | null>(null);
   const [roomLoading, setRoomLoading] = useState(false);
   const [selected, setSelected] = useState<{ game_type: string; mode: string; label: string } | null>(null);
-
+  const [liveStream, setLiveStream] = useState<Tournament | null>(null);
   // Join modal state
   const [joinModal, setJoinModal] = useState<{
     tournament: Tournament; useCredits: boolean;
@@ -437,6 +451,7 @@ const TournamentsPage = () => {
                       roomLoading={roomLoading}
                       wallet={wallet}
                       onRules={setRulesPopup}
+                      onLiveStream={setLiveStream}
                     />
                   ))}
                 </div>
@@ -500,6 +515,36 @@ const TournamentsPage = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Live Stream Dialog */}
+      <Dialog open={!!liveStream} onOpenChange={() => setLiveStream(null)}>
+        <DialogContent className="max-w-3xl border-neon-blue/30 bg-background/95 backdrop-blur-2xl p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle className="flex items-center gap-2 text-neon-blue">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              LIVE — {liveStream?.title}
+            </DialogTitle>
+            <DialogDescription>Watch the tournament live stream</DialogDescription>
+          </DialogHeader>
+          <div className="w-full aspect-video bg-black">
+            {liveStream?.live_url ? (
+              <iframe
+                src={liveStream.live_url}
+                className="w-full h-full"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <p className="text-muted-foreground">Live stream not available yet</p>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -22,6 +22,7 @@ export interface Tournament {
   perspective: string | null;
   per_kill: number | null;
   tournament_no: number | null;
+  live_url: string | null;
 }
 
 export interface TournamentEntry {

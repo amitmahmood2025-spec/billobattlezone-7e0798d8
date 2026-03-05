@@ -54,7 +54,7 @@ const emptyForm = {
   title: "", game_type: "", game_mode: "", map: "", perspective: "", match_type: "",
   description: "", entry_fee: "0",
   entry_fee_type: "credits", prize_pool: "0", max_participants: "",
-  starts_at: "", ends_at: "", rules: "", room_id: "", room_password: "",
+  starts_at: "", ends_at: "", rules: "", room_id: "", room_password: "", live_url: "",
 };
 
 const TournamentManager = () => {
@@ -117,6 +117,7 @@ const TournamentManager = () => {
         rules: form.rules || null,
         room_id: form.room_id || null,
         room_password: form.room_password || null,
+        live_url: form.live_url || null,
       };
 
       if (editingId) {
@@ -149,6 +150,7 @@ const TournamentManager = () => {
       rules: t.rules || "",
       room_id: (t as unknown as Record<string, unknown>).room_id as string || "",
       room_password: (t as unknown as Record<string, unknown>).room_password as string || "",
+      live_url: (t as unknown as Record<string, unknown>).live_url as string || "",
     });
     setShowForm(true);
   };
@@ -402,6 +404,7 @@ const TournamentManager = () => {
                 <Input placeholder="Room / Custom ID" value={form.room_id} onChange={(e) => setForm({ ...form, room_id: e.target.value })} />
                 <Input placeholder="Room Password" value={form.room_password} onChange={(e) => setForm({ ...form, room_password: e.target.value })} />
               </div>
+              <Input placeholder="Live Stream URL (YouTube/Facebook embed link)" value={form.live_url} onChange={(e) => setForm({ ...form, live_url: e.target.value })} />
             </div>
           </div>
           <DialogFooter>

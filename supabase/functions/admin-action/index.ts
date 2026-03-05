@@ -312,6 +312,7 @@ Deno.serve(async (req) => {
           prize_pool: prize_pool || 0, max_participants: max_participants || null,
           starts_at, ends_at: ends_at || null, rules: rules || null,
           room_id: room_id || null, room_password: room_password || null,
+          live_url: data.live_url || null,
           match_type: match_type || null, map: map || null, perspective: perspective || null,
           per_kill: per_kill || 0, tournament_no: tournament_no || null,
           status: "upcoming",
@@ -327,7 +328,7 @@ Deno.serve(async (req) => {
           return new Response(JSON.stringify({ error: "Tournament ID and updates required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        const allowedFields = ["title", "game_type", "mode", "description", "entry_fee", "entry_fee_type", "prize_pool", "max_participants", "starts_at", "ends_at", "rules", "status", "room_id", "room_password", "match_type", "map", "perspective", "per_kill", "tournament_no"];
+        const allowedFields = ["title", "game_type", "mode", "description", "entry_fee", "entry_fee_type", "prize_pool", "max_participants", "starts_at", "ends_at", "rules", "status", "room_id", "room_password", "match_type", "map", "perspective", "per_kill", "tournament_no", "live_url"];
         const sanitized: Record<string, unknown> = {};
         for (const key of allowedFields) {
           if (key in updates) sanitized[key] = updates[key];

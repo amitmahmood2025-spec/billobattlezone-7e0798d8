@@ -135,3 +135,9 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsla(var(--neon) / 0.5);
 }
+
+/* Shimmer animation for live banner */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
