@@ -117,6 +117,7 @@ const TournamentManager = () => {
         rules: form.rules || null,
         room_id: form.room_id || null,
         room_password: form.room_password || null,
+        live_url: form.live_url || null,
       };
 
       if (editingId) {
