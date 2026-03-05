@@ -86,7 +86,7 @@ function useCountdown(targetDate: string) {
 // ─── Tournament Card ──────────────────────────────────────────────────────────
 
 const TournamentCard = ({
-  tournament, index, joining, hasJoined, onJoin, onViewRoom, roomLoading, wallet, onRules,
+  tournament, index, joining, hasJoined, onJoin, onViewRoom, roomLoading, wallet, onRules, onLiveStream,
 }: {
   tournament: Tournament;
   index: number;
@@ -97,6 +97,7 @@ const TournamentCard = ({
   roomLoading: boolean;
   wallet: any;
   onRules: (t: Tournament) => void;
+  onLiveStream: (t: Tournament) => void;
 }) => {
   const countdown = useCountdown(tournament.starts_at);
   const joined = hasJoined(tournament.id);
