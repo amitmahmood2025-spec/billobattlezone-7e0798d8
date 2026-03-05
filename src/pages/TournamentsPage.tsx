@@ -230,15 +230,28 @@ const TournamentCard = ({
         </button>
       </div>
 
-      {/* Countdown */}
-      <div className={`flex items-center justify-center gap-2 py-2.5 ${
-        tournament.status === "live"
-          ? "bg-green-500/90"
-          : "bg-gradient-to-r from-primary/90 to-neon-blue/90"
-      }`}>
-        <Clock className="w-4 h-4 text-primary-foreground" />
-        <span className="text-primary-foreground font-bold text-sm tracking-wider">
-          {tournament.status === "live" ? "🔴 LIVE NOW" : `STARTS IN ${countdown}`}
+      {/* Countdown / Live Banner */}
+      <div
+        onClick={() => {
+          if (tournament.status === "live" && tournament.live_url) {
+            onLiveStream(tournament);
+          }
+        }}
+        className={`flex items-center justify-center gap-2 py-2.5 ${
+          tournament.status === "live"
+            ? "bg-gradient-to-r from-neon-blue/90 to-primary/90 cursor-pointer relative overflow-hidden"
+            : "bg-gradient-to-r from-primary/90 to-neon-blue/90"
+        }`}
+      >
+        {tournament.status === "live" && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite]" style={{ backgroundSize: '200% 100%' }} />
+            <div className="absolute inset-0 border border-neon-blue/50 animate-pulse rounded-b-2xl" />
+          </>
+        )}
+        <Clock className={`w-4 h-4 ${tournament.status === "live" ? "text-white" : "text-primary-foreground"}`} />
+        <span className={`font-bold text-sm tracking-wider ${tournament.status === "live" ? "text-white" : "text-primary-foreground"}`}>
+          {tournament.status === "live" ? "🔴 LIVE NOW — TAP TO WATCH" : `STARTS IN ${countdown}`}
         </span>
       </div>
     </motion.div>
