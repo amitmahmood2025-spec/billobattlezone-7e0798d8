@@ -451,6 +451,7 @@ const TournamentsPage = () => {
                       roomLoading={roomLoading}
                       wallet={wallet}
                       onRules={setRulesPopup}
+                      onLiveStream={setLiveStream}
                     />
                   ))}
                 </div>
