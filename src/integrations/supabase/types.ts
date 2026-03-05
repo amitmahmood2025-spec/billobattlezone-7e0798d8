@@ -466,6 +466,7 @@ export type Database = {
           entry_fee_type: Database["public"]["Enums"]["entry_fee_type"]
           game_type: string
           id: string
+          live_url: string | null
           map: string | null
           match_type: string | null
           max_participants: number | null
@@ -490,6 +491,7 @@ export type Database = {
           entry_fee_type?: Database["public"]["Enums"]["entry_fee_type"]
           game_type: string
           id?: string
+          live_url?: string | null
           map?: string | null
           match_type?: string | null
           max_participants?: number | null
@@ -514,6 +516,7 @@ export type Database = {
           entry_fee_type?: Database["public"]["Enums"]["entry_fee_type"]
           game_type?: string
           id?: string
+          live_url?: string | null
           map?: string | null
           match_type?: string | null
           max_participants?: number | null

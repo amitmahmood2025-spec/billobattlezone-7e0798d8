@@ -312,6 +312,7 @@ Deno.serve(async (req) => {
           prize_pool: prize_pool || 0, max_participants: max_participants || null,
           starts_at, ends_at: ends_at || null, rules: rules || null,
           room_id: room_id || null, room_password: room_password || null,
+          live_url: data.live_url || null,
           match_type: match_type || null, map: map || null, perspective: perspective || null,
           per_kill: per_kill || 0, tournament_no: tournament_no || null,
           status: "upcoming",

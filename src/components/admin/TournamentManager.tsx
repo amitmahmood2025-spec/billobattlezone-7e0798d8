@@ -403,6 +403,7 @@ const TournamentManager = () => {
                 <Input placeholder="Room / Custom ID" value={form.room_id} onChange={(e) => setForm({ ...form, room_id: e.target.value })} />
                 <Input placeholder="Room Password" value={form.room_password} onChange={(e) => setForm({ ...form, room_password: e.target.value })} />
               </div>
+              <Input placeholder="Live Stream URL (YouTube/Facebook embed link)" value={form.live_url} onChange={(e) => setForm({ ...form, live_url: e.target.value })} />
             </div>
           </div>
           <DialogFooter>
