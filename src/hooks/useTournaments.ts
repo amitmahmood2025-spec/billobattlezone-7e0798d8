@@ -79,9 +79,15 @@ export const useTournaments = (
 
   const joinTournament = async (
     tournament: Tournament,
-    payWithCredits: boolean = true
+    payWithCredits: boolean = true,
+    gameId?: string,
+    gameName?: string,
   ) => {
     if (!profileId) return;
+    if (!gameId || !gameName) {
+      toast.error("Game ID ও Game Name দিতে হবে");
+      return;
+    }
 
     const balance = payWithCredits ? credits : cash;
     if (balance < tournament.entry_fee) {
