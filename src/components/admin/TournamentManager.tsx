@@ -54,7 +54,7 @@ const emptyForm = {
   title: "", game_type: "", game_mode: "", map: "", perspective: "", match_type: "",
   description: "", entry_fee: "0",
   entry_fee_type: "credits", prize_pool: "0", max_participants: "",
-  starts_at: "", ends_at: "", rules: "", room_id: "", room_password: "",
+  starts_at: "", ends_at: "", rules: "", room_id: "", room_password: "", live_url: "",
 };
 
 const TournamentManager = () => {
