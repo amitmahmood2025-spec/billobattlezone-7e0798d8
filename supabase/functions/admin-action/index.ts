@@ -360,7 +360,12 @@ Deno.serve(async (req) => {
           .select("*, profiles(username, email)")
           .eq("tournament_id", tournamentId)
           .order("joined_at", { ascending: true });
-        result = { success: true, entries: entries || [] };
+        result = { success: true, entries: (entries || []).map((e: any) => ({
+          ...e,
+          game_id: e.game_id || null,
+          game_name: e.game_name || null,
+          kills: e.kills || 0,
+        })) };
         break;
       }
 

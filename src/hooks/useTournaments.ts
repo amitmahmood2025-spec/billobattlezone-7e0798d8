@@ -33,6 +33,9 @@ export interface TournamentEntry {
   placement: number | null;
   prize_won: number;
   joined_at: string;
+  game_id: string | null;
+  game_name: string | null;
+  kills: number | null;
 }
 
 export const useTournaments = (
@@ -76,9 +79,15 @@ export const useTournaments = (
 
   const joinTournament = async (
     tournament: Tournament,
-    payWithCredits: boolean = true
+    payWithCredits: boolean = true,
+    gameId?: string,
+    gameName?: string,
   ) => {
     if (!profileId) return;
+    if (!gameId || !gameName) {
+      toast.error("Game ID ও Game Name দিতে হবে");
+      return;
+    }
 
     const balance = payWithCredits ? credits : cash;
     if (balance < tournament.entry_fee) {
@@ -128,6 +137,8 @@ export const useTournaments = (
         profile_id: profileId,
         fee_paid: tournament.entry_fee,
         fee_type: payWithCredits ? "credits" : "cash",
+        game_id: gameId,
+        game_name: gameName,
       });
 
       // Update participant count

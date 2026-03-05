@@ -44,6 +44,9 @@ interface TournamentEntry {
   placement: number | null;
   prize_won: number | null;
   joined_at: string;
+  game_id: string | null;
+  game_name: string | null;
+  kills: number | null;
   profiles: { username: string | null; email: string | null };
 }
 
@@ -410,36 +413,77 @@ const TournamentManager = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Entries/Participants Dialog */}
+      {/* Entries/Participants Dialog with Prize Distribution */}
       <Dialog open={!!viewEntries} onOpenChange={() => setViewEntries(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" /> Participants & Scores
+              <Users className="w-5 h-5" /> Participants & Prize Distribution
             </DialogTitle>
-            <DialogDescription>Players who joined this tournament</DialogDescription>
+            <DialogDescription>
+              Players, Game IDs, Kills ও Prize manage করুন। Per Kill prize auto-calculate হবে।
+            </DialogDescription>
           </DialogHeader>
+
           {entriesLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
           ) : entries.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">No participants yet</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Player</TableHead>
-                  <TableHead>Fee</TableHead>
-                  <TableHead>Placement</TableHead>
-                  <TableHead>Prize</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {entries.map((e) => (
-                  <EntryRow key={e.id} entry={e} onUpdate={updatePlacement} />
-                ))}
-              </TableBody>
-            </Table>
+            <>
+              {/* Per-kill info */}
+              {viewEntries && (() => {
+                const t = tournaments.find(x => x.id === viewEntries);
+                return t ? (
+                  <div className="glass rounded-lg p-3 flex items-center justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Per Kill Rate:</span>
+                    <span className="font-bold text-primary">৳{(t as any).per_kill || 0}</span>
+                  </div>
+                ) : null;
+              })()}
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Player</TableHead>
+                    <TableHead>Game ID</TableHead>
+                    <TableHead>Game Name</TableHead>
+                    <TableHead>Kills</TableHead>
+                    <TableHead>Placement</TableHead>
+                    <TableHead>Prize (৳)</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {entries.map((e) => (
+                    <EntryRow
+                      key={e.id}
+                      entry={e}
+                      perKill={(tournaments.find(x => x.id === viewEntries) as any)?.per_kill || 0}
+                      onUpdate={updatePlacement}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Bulk distribute button */}
+              <div className="flex justify-end mt-3">
+                <Button
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-500"
+                  onClick={async () => {
+                    let count = 0;
+                    for (const e of entries) {
+                      if ((e.prize_won || 0) > 0 && !e.placement) continue;
+                      // Already processed entries with prizes will be skipped
+                    }
+                    toast.success("Prize distribution পৃথকভাবে প্রতিটি player এ Save করুন");
+                  }}
+                >
+                  <Trophy className="w-4 h-4 mr-1" /> Prize Distribution Guide
+                </Button>
+              </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
@@ -449,20 +493,38 @@ const TournamentManager = () => {
 
 const EntryRow = ({
   entry,
+  perKill,
   onUpdate,
 }: {
   entry: TournamentEntry;
+  perKill: number;
   onUpdate: (id: string, placement: number, prize: number) => void;
 }) => {
   const [placement, setPlacement] = useState(String(entry.placement || ""));
+  const [kills, setKills] = useState(String(entry.kills || "0"));
   const [prize, setPrize] = useState(String(entry.prize_won || "0"));
+
+  // Auto-calculate kill bonus
+  const killBonus = Number(kills) * perKill;
+  const totalPrize = Number(prize) + killBonus;
 
   return (
     <TableRow>
-      <TableCell className="font-medium">
+      <TableCell className="font-medium text-xs">
         {entry.profiles?.username || entry.profiles?.email || "Unknown"}
       </TableCell>
-      <TableCell>{entry.fee_paid} {entry.fee_type}</TableCell>
+      <TableCell className="text-xs text-primary font-mono">
+        {entry.game_id || "—"}
+      </TableCell>
+      <TableCell className="text-xs">
+        {entry.game_name || "—"}
+      </TableCell>
+      <TableCell>
+        <Input
+          type="number" className="w-16 h-7 text-xs" placeholder="0"
+          value={kills} onChange={(e) => setKills(e.target.value)}
+        />
+      </TableCell>
       <TableCell>
         <Input
           type="number" className="w-16 h-7 text-xs" placeholder="#"
@@ -470,13 +532,21 @@ const EntryRow = ({
         />
       </TableCell>
       <TableCell>
-        <Input
-          type="number" className="w-20 h-7 text-xs" placeholder="৳0"
-          value={prize} onChange={(e) => setPrize(e.target.value)}
-        />
+        <div className="space-y-1">
+          <Input
+            type="number" className="w-20 h-7 text-xs" placeholder="৳0"
+            value={prize} onChange={(e) => setPrize(e.target.value)}
+          />
+          {killBonus > 0 && (
+            <p className="text-[10px] text-green-400">+৳{killBonus} kills = ৳{totalPrize}</p>
+          )}
+        </div>
       </TableCell>
       <TableCell>
-        <Button size="sm" className="h-7 text-xs" onClick={() => onUpdate(entry.id, Number(placement), Number(prize))}>
+        <Button
+          size="sm" className="h-7 text-xs"
+          onClick={() => onUpdate(entry.id, Number(placement), totalPrize)}
+        >
           <Medal className="w-3 h-3 mr-1" /> Save
         </Button>
       </TableCell>

@@ -403,8 +403,11 @@ export type Database = {
         Row: {
           fee_paid: number
           fee_type: Database["public"]["Enums"]["entry_fee_type"]
+          game_id: string | null
+          game_name: string | null
           id: string
           joined_at: string
+          kills: number | null
           placement: number | null
           prize_won: number | null
           profile_id: string
@@ -413,8 +416,11 @@ export type Database = {
         Insert: {
           fee_paid: number
           fee_type: Database["public"]["Enums"]["entry_fee_type"]
+          game_id?: string | null
+          game_name?: string | null
           id?: string
           joined_at?: string
+          kills?: number | null
           placement?: number | null
           prize_won?: number | null
           profile_id: string
@@ -423,8 +429,11 @@ export type Database = {
         Update: {
           fee_paid?: number
           fee_type?: Database["public"]["Enums"]["entry_fee_type"]
+          game_id?: string | null
+          game_name?: string | null
           id?: string
           joined_at?: string
+          kills?: number | null
           placement?: number | null
           prize_won?: number | null
           profile_id?: string
