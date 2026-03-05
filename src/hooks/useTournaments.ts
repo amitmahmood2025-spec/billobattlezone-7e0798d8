@@ -33,6 +33,9 @@ export interface TournamentEntry {
   placement: number | null;
   prize_won: number;
   joined_at: string;
+  game_id: string | null;
+  game_name: string | null;
+  kills: number | null;
 }
 
 export const useTournaments = (
