@@ -516,6 +516,36 @@ const TournamentsPage = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Live Stream Dialog */}
+      <Dialog open={!!liveStream} onOpenChange={() => setLiveStream(null)}>
+        <DialogContent className="max-w-3xl border-neon-blue/30 bg-background/95 backdrop-blur-2xl p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle className="flex items-center gap-2 text-neon-blue">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              LIVE — {liveStream?.title}
+            </DialogTitle>
+            <DialogDescription>Watch the tournament live stream</DialogDescription>
+          </DialogHeader>
+          <div className="w-full aspect-video bg-black">
+            {liveStream?.live_url ? (
+              <iframe
+                src={liveStream.live_url}
+                className="w-full h-full"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <p className="text-muted-foreground">Live stream not available yet</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
