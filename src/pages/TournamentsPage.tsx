@@ -6,9 +6,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useTournaments, Tournament } from "@/hooks/useTournaments";
 import DashboardNav from "@/components/dashboard/DashboardNav";
+import JoinTournamentModal from "@/components/tournaments/JoinTournamentModal";
+import RulesPopup from "@/components/tournaments/RulesPopup";
 import { getGameImage } from "@/lib/gameImages";
 import {
-  Trophy, Clock, Loader2, Coins, Banknote, CheckCircle, Lock, Eye, ArrowLeft,
+  Trophy, Clock, Loader2, Coins, Banknote, CheckCircle, Lock, Eye, ArrowLeft, Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -84,7 +86,7 @@ function useCountdown(targetDate: string) {
 // ─── Tournament Card ──────────────────────────────────────────────────────────
 
 const TournamentCard = ({
-  tournament, index, joining, hasJoined, onJoin, onViewRoom, roomLoading, wallet,
+  tournament, index, joining, hasJoined, onJoin, onViewRoom, roomLoading, wallet, onRules,
 }: {
   tournament: Tournament;
   index: number;
@@ -94,6 +96,7 @@ const TournamentCard = ({
   onViewRoom: (id: string) => void;
   roomLoading: boolean;
   wallet: any;
+  onRules: (t: Tournament) => void;
 }) => {
   const countdown = useCountdown(tournament.starts_at);
   const joined = hasJoined(tournament.id);
@@ -206,18 +209,24 @@ const TournamentCard = ({
         </div>
       </div>
 
-      {/* Room Details & Prize Pool */}
-      <div className="grid grid-cols-2 border-t border-neon-blue/10">
+      {/* Room Details, Rules & Prize Pool */}
+      <div className="grid grid-cols-3 border-t border-neon-blue/10">
         <button
           onClick={() => joined && onViewRoom(tournament.id)}
           disabled={roomLoading || !joined}
-          className="flex items-center justify-center gap-2 py-3 text-sm text-neon-blue hover:bg-neon-blue/5 disabled:opacity-40 transition border-r border-neon-blue/10"
+          className="flex items-center justify-center gap-1.5 py-3 text-xs text-neon-blue hover:bg-neon-blue/5 disabled:opacity-40 transition border-r border-neon-blue/10"
         >
-          {roomLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-          Room Details
+          {roomLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+          Room
         </button>
-        <button className="flex items-center justify-center gap-2 py-3 text-sm text-accent hover:bg-accent/5 transition">
-          <Trophy className="w-4 h-4" /> Prize Pool
+        <button
+          onClick={() => onRules(tournament)}
+          className="flex items-center justify-center gap-1.5 py-3 text-xs text-primary hover:bg-primary/5 transition border-r border-neon-blue/10"
+        >
+          <Shield className="w-3.5 h-3.5" /> Rules
+        </button>
+        <button className="flex items-center justify-center gap-1.5 py-3 text-xs text-accent hover:bg-accent/5 transition">
+          <Trophy className="w-3.5 h-3.5" /> Prizes
         </button>
       </div>
 
@@ -250,9 +259,23 @@ const TournamentsPage = () => {
   const [roomLoading, setRoomLoading] = useState(false);
   const [selected, setSelected] = useState<{ game_type: string; mode: string; label: string } | null>(null);
 
-  const handleJoin = async (tournament: Tournament, useCredits: boolean) => {
-    await joinTournament(tournament, useCredits);
+  // Join modal state
+  const [joinModal, setJoinModal] = useState<{
+    tournament: Tournament; useCredits: boolean;
+  } | null>(null);
+
+  // Rules popup state
+  const [rulesPopup, setRulesPopup] = useState<Tournament | null>(null);
+
+  const handleJoinClick = (tournament: Tournament, useCredits: boolean) => {
+    setJoinModal({ tournament, useCredits });
+  };
+
+  const handleJoinConfirm = async (gameId: string, gameName: string) => {
+    if (!joinModal) return;
+    await joinTournament(joinModal.tournament, joinModal.useCredits, gameId, gameName);
     await refreshWallet();
+    setJoinModal(null);
   };
 
   const viewRoomInfo = async (tournamentId: string) => {
@@ -280,7 +303,6 @@ const TournamentsPage = () => {
     }
   };
 
-  // Filter by game_type AND mode column
   const modeCount = (game_type: string, mode: string) =>
     tournaments.filter(
       (t) =>
@@ -410,10 +432,11 @@ const TournamentsPage = () => {
                       index={i}
                       joining={joining}
                       hasJoined={hasJoined}
-                      onJoin={handleJoin}
+                      onJoin={handleJoinClick}
                       onViewRoom={viewRoomInfo}
                       roomLoading={roomLoading}
                       wallet={wallet}
+                      onRules={setRulesPopup}
                     />
                   ))}
                 </div>
@@ -424,6 +447,28 @@ const TournamentsPage = () => {
 
         <AdSlot slot="tournaments-mid" format="horizontal" />
       </main>
+
+      {/* Join Modal */}
+      {joinModal && (
+        <JoinTournamentModal
+          open={!!joinModal}
+          onClose={() => setJoinModal(null)}
+          onConfirm={handleJoinConfirm}
+          tournamentTitle={joinModal.tournament.title}
+          entryFee={joinModal.tournament.entry_fee}
+          feeType={joinModal.tournament.entry_fee_type}
+          useCredits={joinModal.useCredits}
+          loading={joining === joinModal.tournament.id}
+        />
+      )}
+
+      {/* Rules Popup */}
+      <RulesPopup
+        open={!!rulesPopup}
+        onClose={() => setRulesPopup(null)}
+        gameType={rulesPopup?.game_type || ""}
+        rules={rulesPopup?.rules}
+      />
 
       {/* Room Info Dialog */}
       <Dialog open={!!roomInfo} onOpenChange={() => setRoomInfo(null)}>
