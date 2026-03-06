@@ -45,7 +45,11 @@ export const useTasks = (profileId: string | undefined) => {
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
 
-      setTasks((tasksData || []) as Task[]);
+      // Filter out Telegram-only tasks (those with [TG] prefix or telegram in description)
+      const mainSiteTasks = (tasksData || []).filter((t: any) => 
+        !t.title?.includes("[TG]") && !t.description?.toLowerCase().includes("[telegram]")
+      );
+      setTasks(mainSiteTasks as Task[]);
 
       if (profileId) {
         const { data: userTasksData } = await supabase

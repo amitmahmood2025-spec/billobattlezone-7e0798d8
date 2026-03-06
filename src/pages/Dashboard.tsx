@@ -158,27 +158,40 @@ const Dashboard = () => {
           <QuickActions />
         </div>
 
-        {/* Credit Factory Telegram Button */}
+        {/* Credit Factory Telegram Button - Premium */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="glass rounded-xl p-4 flex items-center justify-between"
+          className="relative rounded-xl overflow-hidden neon-glow group"
         >
-          <div>
-            <p className="font-display font-semibold flex items-center gap-2">
-              <Send className="w-4 h-4 text-primary" /> Credit Factory
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">Earn credits via Telegram bot</p>
+          <div className="absolute inset-0 gradient-neon opacity-10 group-hover:opacity-20 transition-opacity" />
+          <div className="relative glass-strong rounded-xl p-5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                className="text-4xl"
+              >
+                🤖
+              </motion.div>
+              <div>
+                <p className="font-display font-bold text-lg flex items-center gap-2">
+                  <Send className="w-4 h-4 text-primary" />
+                  <span className="text-gradient-neon">Credit Factory</span>
+                </p>
+                <p className="text-sm text-muted-foreground mt-0.5">Exclusive Telegram missions & rewards</p>
+              </div>
+            </div>
+            <a
+              href="https://t.me/creditfactory_bot"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="gradient-neon text-primary-foreground px-5 py-2.5 rounded-xl text-sm font-display font-bold shadow-neon hover:opacity-90 transition flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" /> Open Bot
+            </a>
           </div>
-          <a
-            href="https://t.me/creditfactory_bot"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition"
-          >
-            Open Bot
-          </a>
         </motion.div>
 
         {/* Available Tasks Preview */}
