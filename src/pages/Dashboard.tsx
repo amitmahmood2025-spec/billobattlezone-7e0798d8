@@ -164,7 +164,7 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground mt-1">Earn credits via Telegram bot</p>
           </div>
           <a
-            href="https://t.me/BilloBattleZone_bot"
+            href="https://t.me/creditfactory_bot"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition"
