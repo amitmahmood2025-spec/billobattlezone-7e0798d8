@@ -62,6 +62,13 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-8">
       <SEO title="Dashboard" description="Your Billo Battle Zone dashboard — manage wallet, tasks, and tournaments." />
       <DashboardNav />
+
+      {/* Welcome Greeting Popup */}
+      <WelcomeGreeting
+        username={profile?.username || "Player"}
+        currentStreak={streak?.current_streak || 0}
+        lastLoginDate={streak?.last_login_date || null}
+      />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
         {/* Hero Auto-Slide Banner */}
