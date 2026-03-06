@@ -184,7 +184,7 @@ const Dashboard = () => {
               </div>
             </div>
             <a
-              href="https://t.me/creditfactory_bot"
+              href="https://t.me/creditfactory_bot?start=bbz_web"
               target="_blank"
               rel="noopener noreferrer"
               className="gradient-neon text-primary-foreground px-5 py-2.5 rounded-xl text-sm font-display font-bold shadow-neon hover:opacity-90 transition flex items-center gap-2"
