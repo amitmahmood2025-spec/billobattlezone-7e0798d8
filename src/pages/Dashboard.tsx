@@ -12,6 +12,7 @@ import { getGameImage } from "@/lib/gameImages";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
 import AdSlot from "@/components/AdSlot";
+import WelcomeGreeting from "@/components/WelcomeGreeting";
 
 import freefireBanner from "@/assets/games/freefire-banner.jpg";
 import freefireAction from "@/assets/games/freefire-action.jpg";
