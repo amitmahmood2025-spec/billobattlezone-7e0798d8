@@ -703,7 +703,7 @@ Deno.serve(async (req: Request) => {
     .single();
 
   return { profile: final, isNew: true };
-}
+
 
 async function claimDailyBonus(profileId: string): Promise<{ success: boolean; credits?: number; error?: string }> {
   const today = new Date().toISOString().split("T")[0];
