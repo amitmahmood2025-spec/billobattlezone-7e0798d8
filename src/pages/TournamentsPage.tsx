@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SEO from "@/components/SEO";
 import AdSlot from "@/components/AdSlot";
 import { motion, AnimatePresence } from "framer-motion";
@@ -86,7 +87,7 @@ function useCountdown(targetDate: string) {
 // ─── Tournament Card ──────────────────────────────────────────────────────────
 
 const TournamentCard = ({
-  tournament, index, joining, hasJoined, onJoin, onViewRoom, roomLoading, wallet, onRules, onLiveStream,
+  tournament, index, joining, hasJoined, onJoin, onViewRoom, roomLoading, wallet, onRules, onLiveStream, onNavigate,
 }: {
   tournament: Tournament;
   index: number;
@@ -98,6 +99,7 @@ const TournamentCard = ({
   wallet: any;
   onRules: (t: Tournament) => void;
   onLiveStream: (t: Tournament) => void;
+  onNavigate: (id: string) => void;
 }) => {
   const countdown = useCountdown(tournament.starts_at);
   const joined = hasJoined(tournament.id);
@@ -126,14 +128,14 @@ const TournamentCard = ({
       className="rounded-2xl overflow-hidden border border-neon-blue/20 bg-background/80 backdrop-blur-xl shadow-[0_0_30px_-10px_hsl(var(--neon-blue)/0.15)]"
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2 relative">
+      <div className="flex items-center gap-3 px-4 pt-4 pb-2 relative cursor-pointer" onClick={() => onNavigate(tournament.id)}>
         <img
           src={gameImage.thumb}
           alt={tournament.game_type}
           className="w-12 h-12 rounded-xl object-cover border border-neon-blue/30 shadow-[0_0_10px_hsl(var(--neon-blue)/0.2)]"
         />
         <div className="flex-1 pr-16">
-          <p className="font-display font-bold text-foreground text-base leading-tight">{tournament.title}</p>
+          <p className="font-display font-bold text-foreground text-base leading-tight hover:text-primary transition-colors">{tournament.title}</p>
           <p className="text-xs text-primary font-medium mt-0.5">
             {format(new Date(tournament.starts_at), "yyyy-MM-dd hh:mm aa")}
           </p>
@@ -262,6 +264,7 @@ const TournamentCard = ({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const TournamentsPage = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, wallet, refreshWallet } = useProfile();
   const { tournaments, loading, joining, joinTournament, hasJoined } = useTournaments(
@@ -452,6 +455,7 @@ const TournamentsPage = () => {
                       wallet={wallet}
                       onRules={setRulesPopup}
                       onLiveStream={setLiveStream}
+                      onNavigate={(id) => navigate(`/dashboard/tournaments/${id}`)}
                     />
                   ))}
                 </div>
