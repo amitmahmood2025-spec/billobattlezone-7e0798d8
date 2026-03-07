@@ -455,6 +455,7 @@ const TournamentsPage = () => {
                       wallet={wallet}
                       onRules={setRulesPopup}
                       onLiveStream={setLiveStream}
+                      onNavigate={(id) => navigate(`/dashboard/tournaments/${id}`)}
                     />
                   ))}
                 </div>
