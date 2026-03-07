@@ -264,6 +264,7 @@ const TournamentCard = ({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const TournamentsPage = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, wallet, refreshWallet } = useProfile();
   const { tournaments, loading, joining, joinTournament, hasJoined } = useTournaments(
