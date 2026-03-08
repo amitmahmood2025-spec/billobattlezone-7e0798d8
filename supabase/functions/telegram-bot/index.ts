@@ -179,7 +179,7 @@ bot.command("daily", async (ctx) => {
       reply_markup: mainKeyboard(),
     });
   } else {
-    await ctx.reply(result.error);
+    await ctx.reply(result.error || "Already claimed today");
   }
 });
 
