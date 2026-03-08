@@ -1,24 +1,30 @@
-import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, Clock, Zap, Gift, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import SpinMissions from "./SpinMissions";
 
 interface SpinWheelProps {
   onClose: () => void;
 }
 
-const PRIZES = [
-  { credits: 5, color: "#00d9ff", label: "5" },
-  { credits: 10, color: "#00ff88", label: "10" },
-  { credits: 15, color: "#ff6b6b", label: "15" },
-  { credits: 25, color: "#ffd93d", label: "25" },
-  { credits: 50, color: "#6c5ce7", label: "50" },
-  { credits: 75, color: "#fd79a8", label: "75" },
-  { credits: 100, color: "#00cec9", label: "100" },
-  { credits: 5, color: "#e17055", label: "5" },
+// Visual prizes on wheel - mix of flashy + low value
+const WHEEL_SEGMENTS = [
+  { label: "2", color: "hsl(var(--primary))", textColor: "#fff" },
+  { label: "50", color: "hsl(190 100% 20%)", textColor: "hsl(var(--primary))" },
+  { label: "3", color: "hsl(var(--neon-green))", textColor: "#fff" },
+  { label: "75", color: "hsl(190 100% 15%)", textColor: "hsl(var(--primary))" },
+  { label: "4", color: "hsl(var(--primary))", textColor: "#fff" },
+  { label: "100", color: "hsl(190 100% 18%)", textColor: "hsl(var(--primary))" },
+  { label: "5", color: "hsl(142 71% 45%)", textColor: "#fff" },
+  { label: "25", color: "hsl(190 100% 15%)", textColor: "hsl(var(--primary))" },
+  { label: "3", color: "hsl(var(--primary))", textColor: "#fff" },
+  { label: "10", color: "hsl(190 100% 20%)", textColor: "hsl(var(--primary))" },
+  { label: "2", color: "hsl(142 71% 45%)", textColor: "#fff" },
+  { label: "15", color: "hsl(190 100% 15%)", textColor: "hsl(var(--primary))" },
 ];
 
 const SpinWheel = ({ onClose }: SpinWheelProps) => {
@@ -27,88 +33,156 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<number | null>(null);
+  const [showMissions, setShowMissions] = useState(false);
+  const [nextSpinTime, setNextSpinTime] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState("");
 
+  // Calculate next spin countdown
   useEffect(() => {
-    drawWheel();
-  }, [rotation]);
+    if (!nextSpinTime) return;
+    const target = new Date(nextSpinTime).getTime();
+    const tick = () => {
+      const diff = target - Date.now();
+      if (diff <= 0) { setCountdown(""); setNextSpinTime(null); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setCountdown(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [nextSpinTime]);
 
-  const drawWheel = () => {
+  const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 10;
-    const sliceAngle = (2 * Math.PI) / PRIZES.length;
+    const size = canvas.width;
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = cx - 12;
+    const segments = WHEEL_SEGMENTS.length;
+    const sliceAngle = (2 * Math.PI) / segments;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, size, size);
+
+    // Outer glow ring
     ctx.save();
-    ctx.translate(centerX, centerY);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 8, 0, 2 * Math.PI);
+    ctx.strokeStyle = "hsl(var(--primary))";
+    ctx.lineWidth = 3;
+    ctx.shadowColor = "hsl(var(--primary))";
+    ctx.shadowBlur = 20;
+    ctx.stroke();
+    ctx.restore();
+
+    // Second glow ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 4, 0, 2 * Math.PI);
+    ctx.strokeStyle = "hsl(var(--primary) / 0.4)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(cx, cy);
     ctx.rotate((rotation * Math.PI) / 180);
-    ctx.translate(-centerX, -centerY);
+    ctx.translate(-cx, -cy);
 
-    // Draw slices
-    PRIZES.forEach((prize, i) => {
-      const startAngle = i * sliceAngle - Math.PI / 2;
-      const endAngle = startAngle + sliceAngle;
+    // Draw segments
+    WHEEL_SEGMENTS.forEach((seg, i) => {
+      const start = i * sliceAngle - Math.PI / 2;
+      const end = start + sliceAngle;
 
+      // Segment fill
       ctx.beginPath();
-      ctx.moveTo(centerX, centerY);
-      ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start, end);
       ctx.closePath();
-      ctx.fillStyle = prize.color;
+      ctx.fillStyle = seg.color;
       ctx.fill();
-      ctx.strokeStyle = "#1a1a2e";
-      ctx.lineWidth = 2;
+
+      // Segment border
+      ctx.strokeStyle = "hsl(var(--primary) / 0.3)";
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Draw text
+      // Segment text
       ctx.save();
-      ctx.translate(centerX, centerY);
-      ctx.rotate(startAngle + sliceAngle / 2);
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 18px Orbitron";
-      ctx.shadowColor = "rgba(0,0,0,0.5)";
+      ctx.translate(cx, cy);
+      ctx.rotate(start + sliceAngle / 2);
+      ctx.textAlign = "center";
+      ctx.fillStyle = seg.textColor;
+      ctx.font = "bold 16px 'Orbitron', monospace";
+      ctx.shadowColor = "rgba(0,0,0,0.8)";
       ctx.shadowBlur = 4;
-      ctx.fillText(prize.label, radius - 20, 6);
+      ctx.fillText(seg.label, r * 0.65, 5);
+      ctx.restore();
+
+      // Small dot dividers
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(start);
+      ctx.beginPath();
+      ctx.arc(r - 5, 0, 2, 0, 2 * Math.PI);
+      ctx.fillStyle = "hsl(var(--primary))";
+      ctx.fill();
       ctx.restore();
     });
 
-    // Draw center circle
+    // Inner ring
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
-    ctx.fillStyle = "#1a1a2e";
+    ctx.arc(cx, cy, r * 0.28, 0, 2 * Math.PI);
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.28);
+    grad.addColorStop(0, "hsl(222 47% 14%)");
+    grad.addColorStop(1, "hsl(222 47% 8%)");
+    ctx.fillStyle = grad;
     ctx.fill();
-    ctx.strokeStyle = "#00d9ff";
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = "hsl(var(--primary))";
+    ctx.lineWidth = 2;
+    ctx.shadowColor = "hsl(var(--primary))";
+    ctx.shadowBlur = 15;
     ctx.stroke();
+
+    // Center text
+    ctx.shadowBlur = 0;
+    ctx.font = "bold 13px 'Orbitron', monospace";
+    ctx.fillStyle = "hsl(var(--primary))";
+    ctx.textAlign = "center";
+    ctx.fillText("SPIN", cx, cy - 4);
+    ctx.fillText("NOW", cx, cy + 12);
 
     ctx.restore();
 
-    // Draw pointer
+    // Pointer (top)
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(centerX, 10);
-    ctx.lineTo(centerX - 15, 35);
-    ctx.lineTo(centerX + 15, 35);
+    ctx.moveTo(cx, 4);
+    ctx.lineTo(cx - 12, 30);
+    ctx.lineTo(cx + 12, 30);
     ctx.closePath();
-    ctx.fillStyle = "#00d9ff";
+    ctx.fillStyle = "hsl(var(--primary))";
+    ctx.shadowColor = "hsl(var(--primary))";
+    ctx.shadowBlur = 15;
     ctx.fill();
-    ctx.shadowColor = "#00d9ff";
-    ctx.shadowBlur = 10;
-  };
+    ctx.restore();
+  }, [rotation]);
+
+  useEffect(() => {
+    drawWheel();
+  }, [drawWheel]);
 
   const spin = async () => {
     if (!user) return;
-
     try {
       setSpinning(true);
       setResult(null);
 
-      // Call spin endpoint
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spin-wheel`,
         {
@@ -122,48 +196,50 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
       );
 
       const data = await response.json();
-
       if (!response.ok) {
+        if (data.error?.includes("Already spun")) {
+          // Set countdown to tomorrow midnight
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          tomorrow.setHours(0, 0, 0, 0);
+          setNextSpinTime(tomorrow.toISOString());
+        }
         throw new Error(data.error || "Failed to spin");
       }
 
-      // Find prize index
-      const prizeIndex = PRIZES.findIndex((p) => p.credits === data.prize.credits);
-      const sliceAngle = 360 / PRIZES.length;
-      const targetAngle = 360 - prizeIndex * sliceAngle - sliceAngle / 2;
-      const spins = 5; // Number of full rotations
+      // Find matching segment index for landing
+      const wonCredits = data.prize.credits;
+      const segIdx = WHEEL_SEGMENTS.findIndex((s) => s.label === String(wonCredits));
+      const sliceAngle = 360 / WHEEL_SEGMENTS.length;
+      const targetAngle = 360 - segIdx * sliceAngle - sliceAngle / 2;
+      const spins = 6;
       const finalRotation = rotation + 360 * spins + targetAngle;
 
-      // Animate rotation
-      let currentRotation = rotation;
-      const duration = 5000;
-      const startTime = Date.now();
+      let start: number | null = null;
+      const duration = 6000;
 
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
+      const animate = (timestamp: number) => {
+        if (!start) start = timestamp;
+        const elapsed = timestamp - start;
         const progress = Math.min(elapsed / duration, 1);
-        
-        // Easing function (ease out cubic)
-        const eased = 1 - Math.pow(1 - progress, 3);
-        
-        currentRotation = rotation + (finalRotation - rotation) * eased;
-        setRotation(currentRotation);
+        const eased = 1 - Math.pow(1 - progress, 4);
+        setRotation(rotation + (finalRotation - rotation) * eased);
 
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          setResult(data.prize.credits);
-          confetti({
-            particleCount: 150,
-            spread: 100,
-            origin: { y: 0.5 },
-          });
-          toast.success(`You won ${data.prize.credits} Credits!`);
+          setResult(wonCredits);
+          confetti({ particleCount: 200, spread: 120, origin: { y: 0.4 }, colors: ["#00d9ff", "#00ff88", "#ffd93d"] });
+          toast.success(`🎉 You won ${wonCredits} Credits!`);
           setSpinning(false);
+          // Set next spin countdown
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          tomorrow.setHours(0, 0, 0, 0);
+          setNextSpinTime(tomorrow.toISOString());
         }
       };
-
-      animate();
+      requestAnimationFrame(animate);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to spin";
       toast.error(message);
@@ -176,60 +252,123 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-md p-4"
+      onClick={(e) => e.target === e.currentTarget && !spinning && onClose()}
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="glass rounded-2xl p-6 max-w-md w-full text-center"
+        initial={{ scale: 0.85, opacity: 0, y: 30 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.85, opacity: 0, y: 30 }}
+        transition={{ type: "spring", damping: 20 }}
+        className="relative w-full max-w-lg"
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-display font-bold text-xl">Spin the Wheel!</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3 px-2">
+          <div>
+            <h2 className="font-display font-bold text-xl tracking-wider text-primary neon-text">
+              DAILY LUCKY SPIN
+            </h2>
+            <p className="text-xs text-muted-foreground">Win credits every day!</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="w-5 h-5" />
           </Button>
         </div>
 
-        <div className="relative mx-auto mb-6" style={{ width: 280, height: 280 }}>
-          <canvas
-            ref={canvasRef}
-            width={280}
-            height={280}
-            className="drop-shadow-2xl"
-          />
+        {/* Main content - wheel + missions side panel */}
+        <div className="flex gap-3">
+          {/* Wheel area */}
+          <div className="flex-1 glass rounded-2xl p-4 neon-border relative overflow-hidden">
+            {/* Subtle background particles */}
+            <div className="absolute inset-0 opacity-10">
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 rounded-full bg-primary"
+                  style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
+                  animate={{ opacity: [0.2, 1, 0.2], scale: [0.5, 1.5, 0.5] }}
+                  transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 2 }}
+                />
+              ))}
+            </div>
+
+            {/* Canvas wheel */}
+            <div className="relative mx-auto" style={{ width: 280, height: 280 }}>
+              <canvas ref={canvasRef} width={280} height={280} />
+            </div>
+
+            {/* Result or countdown */}
+            <div className="mt-4 text-center min-h-[60px]">
+              <AnimatePresence mode="wait">
+                {result !== null ? (
+                  <motion.div key="result" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0 }}>
+                    <p className="text-sm text-muted-foreground">You won</p>
+                    <p className="font-display font-bold text-3xl text-primary neon-text">{result} Credits!</p>
+                  </motion.div>
+                ) : countdown ? (
+                  <motion.div key="countdown" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span className="text-xs text-muted-foreground">Next spin in</span>
+                    <span className="font-display font-bold text-primary text-lg tracking-widest">{countdown}</span>
+                  </motion.div>
+                ) : (
+                  <motion.p key="cta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-muted-foreground">
+                    🎰 Try your luck! 1 free spin per day.
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Spin / Close button */}
+            <Button
+              onClick={result !== null ? onClose : spin}
+              disabled={spinning || !!countdown}
+              className="w-full h-12 font-display font-bold text-base tracking-wider shadow-neon mt-2"
+            >
+              {spinning ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : result !== null ? (
+                <>Collect & Close</>
+              ) : countdown ? (
+                <><Clock className="w-4 h-4 mr-2" /> COME BACK LATER</>
+              ) : (
+                <><Zap className="w-5 h-5 mr-2" /> SPIN!</>
+              )}
+            </Button>
+          </div>
+
+          {/* Earn More Spins side panel (desktop) */}
+          <div className="hidden md:flex flex-col w-44">
+            <Button
+              variant="outline"
+              className="w-full h-full neon-border font-display text-xs flex flex-col gap-2 py-4 hover:bg-primary/10"
+              onClick={() => setShowMissions(true)}
+            >
+              <Gift className="w-8 h-8 text-primary" />
+              <span className="text-primary font-bold">EARN MORE</span>
+              <span className="text-muted-foreground">Complete missions</span>
+              <ChevronRight className="w-4 h-4 text-primary" />
+            </Button>
+          </div>
         </div>
 
-        {result !== null ? (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="mb-4"
+        {/* Earn More button (mobile) */}
+        <div className="md:hidden mt-3">
+          <Button
+            variant="outline"
+            className="w-full neon-border font-display text-sm flex items-center gap-3 py-3"
+            onClick={() => setShowMissions(true)}
           >
-            <p className="text-lg text-muted-foreground">You won</p>
-            <p className="font-display font-bold text-4xl text-primary">
-              {result} Credits!
-            </p>
-          </motion.div>
-        ) : (
-          <p className="text-muted-foreground mb-4">
-            Try your luck! 1 free spin per day.
-          </p>
-        )}
+            <Gift className="w-5 h-5 text-primary" />
+            <span className="text-primary font-bold">EARN MORE CREDITS</span>
+            <ChevronRight className="w-4 h-4 text-primary ml-auto" />
+          </Button>
+        </div>
 
-        <Button
-          onClick={result !== null ? onClose : spin}
-          disabled={spinning}
-          className="w-full h-12 font-display font-bold text-lg shadow-neon"
-        >
-          {spinning ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : result !== null ? (
-            "Collect & Close"
-          ) : (
-            "SPIN!"
-          )}
-        </Button>
+        {/* Missions panel */}
+        <AnimatePresence>
+          {showMissions && <SpinMissions onClose={() => setShowMissions(false)} />}
+        </AnimatePresence>
       </motion.div>
     </motion.div>
   );
