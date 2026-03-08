@@ -76,34 +76,58 @@ const TournamentDetail = () => {
 
   const countdown = useCountdown(tournament?.starts_at || new Date().toISOString());
 
+  const fetchTournamentData = async () => {
+    if (!id) return;
+    const { data: t } = await supabase.from("tournaments").select("*").eq("id", id).single();
+    setTournament(t as TournamentFull | null);
+
+    const { data: entries } = await supabase
+      .from("tournament_entries")
+      .select("*, profiles:profile_id(username, avatar_url)")
+      .eq("tournament_id", id)
+      .order("joined_at", { ascending: true });
+
+    setParticipants(
+      (entries || []).map((e: any) => ({
+        id: e.id,
+        game_id: e.game_id,
+        game_name: e.game_name,
+        placement: e.placement,
+        kills: e.kills,
+        prize_won: e.prize_won,
+        joined_at: e.joined_at,
+        profile: e.profiles,
+      }))
+    );
+  };
+
   useEffect(() => {
     if (!id) return;
-    const fetch = async () => {
-      setLoading(true);
-      const { data: t } = await supabase.from("tournaments").select("*").eq("id", id).single();
-      setTournament(t as TournamentFull | null);
+    setLoading(true);
+    fetchTournamentData().finally(() => setLoading(false));
+  }, [id]);
 
-      const { data: entries } = await supabase
-        .from("tournament_entries")
-        .select("*, profiles:profile_id(username, avatar_url)")
-        .eq("tournament_id", id)
-        .order("joined_at", { ascending: true });
+  // Realtime: listen for new entries & tournament updates
+  useEffect(() => {
+    if (!id) return;
 
-      setParticipants(
-        (entries || []).map((e: any) => ({
-          id: e.id,
-          game_id: e.game_id,
-          game_name: e.game_name,
-          placement: e.placement,
-          kills: e.kills,
-          prize_won: e.prize_won,
-          joined_at: e.joined_at,
-          profile: e.profiles,
-        }))
-      );
-      setLoading(false);
-    };
-    fetch();
+    const channel = supabase
+      .channel(`tournament-${id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'tournament_entries',
+        filter: `tournament_id=eq.${id}`,
+      }, () => { fetchTournamentData(); })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'tournaments',
+        filter: `id=eq.${id}`,
+      }, (payload) => { setTournament(payload.new as TournamentFull); })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [id]);
 
   if (loading) {

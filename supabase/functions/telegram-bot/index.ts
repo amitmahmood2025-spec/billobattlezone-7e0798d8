@@ -216,7 +216,7 @@ bot.callbackQuery("claim_daily", async (ctx) => {
   if (result.success) {
     await ctx.editMessageText(`✅ +${result.credits} Credits received!`);
   } else {
-    await ctx.editMessageText(result.error);
+    await ctx.editMessageText(result.error || "Already claimed today");
   }
 });
 
