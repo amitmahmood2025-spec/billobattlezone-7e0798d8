@@ -12,30 +12,67 @@ interface SpinWheelProps {
   onClose: () => void;
 }
 
-// Visual segments - flashy labels but players always win low credits (2-5)
+// ═══════════════════════════════════════════
+// WHEEL SEGMENTS — premium gaming labels with icons
+// Players always win low credits (2-5), big prizes are visual only
+// ═══════════════════════════════════════════
 const WHEEL_SEGMENTS = [
-  { label: "5 CR", subLabel: "", color1: "#0a3d5c", color2: "#0d4a6b", accent: "#00d9ff" },
-  { label: "FF", subLabel: "DIAMOND", color1: "#1a1a2e", color2: "#16213e", accent: "#ff6b35" },
-  { label: "2 CR", subLabel: "", color1: "#0d4a6b", color2: "#0a3d5c", accent: "#00ff88" },
-  { label: "PUBG", subLabel: "ROYAL PASS", color1: "#1a1a2e", color2: "#16213e", accent: "#ffd93d" },
-  { label: "3 CR", subLabel: "", color1: "#0a3d5c", color2: "#0d4a6b", accent: "#00d9ff" },
-  { label: "LUDO", subLabel: "ULTRA PACK", color1: "#1a1a2e", color2: "#16213e", accent: "#ff3d71" },
-  { label: "4 CR", subLabel: "", color1: "#0d4a6b", color2: "#0a3d5c", accent: "#00ff88" },
-  { label: "FF", subLabel: "1000 💎", color1: "#1a1a2e", color2: "#16213e", accent: "#ff6b35" },
-  { label: "2 CR", subLabel: "", color1: "#0a3d5c", color2: "#0d4a6b", accent: "#00d9ff" },
-  { label: "PUBG", subLabel: "UC (600)", color1: "#1a1a2e", color2: "#16213e", accent: "#ffd93d" },
-  { label: "3 CR", subLabel: "", color1: "#0d4a6b", color2: "#0a3d5c", accent: "#00ff88" },
-  { label: "10 CR", subLabel: "", color1: "#1a1a2e", color2: "#16213e", accent: "#c084fc" },
+  { label: "5 CR",       icon: "💰", subLabel: "CREDITS",       color1: "#0a3d5c", color2: "#0d4a6b", accent: "#00d9ff" },
+  { label: "ROYAL",      icon: "👑", subLabel: "PASS",          color1: "#1a1a2e", color2: "#16213e", accent: "#ffd93d" },
+  { label: "2 CR",       icon: "🪙", subLabel: "CREDITS",       color1: "#0d4a6b", color2: "#0a3d5c", accent: "#00ff88" },
+  { label: "WEEKLY",     icon: "📅", subLabel: "MEMBERSHIP",    color1: "#1a1a2e", color2: "#16213e", accent: "#ff6b35" },
+  { label: "3 CR",       icon: "💎", subLabel: "CREDITS",       color1: "#0a3d5c", color2: "#0d4a6b", accent: "#00d9ff" },
+  { label: "ELITE",      icon: "⚔️", subLabel: "PASS",          color1: "#1a1a2e", color2: "#16213e", accent: "#c084fc" },
+  { label: "4 CR",       icon: "✨", subLabel: "CREDITS",       color1: "#0d4a6b", color2: "#0a3d5c", accent: "#00ff88" },
+  { label: "MONTHLY",    icon: "🏆", subLabel: "PREMIUM",       color1: "#1a1a2e", color2: "#16213e", accent: "#ff3d71" },
+  { label: "2 CR",       icon: "🪙", subLabel: "CREDITS",       color1: "#0a3d5c", color2: "#0d4a6b", accent: "#00d9ff" },
+  { label: "PREMIUM",    icon: "💠", subLabel: "PASS",          color1: "#1a1a2e", color2: "#16213e", accent: "#ffd93d" },
+  { label: "3 CR",       icon: "💎", subLabel: "CREDITS",       color1: "#0d4a6b", color2: "#0a3d5c", accent: "#00ff88" },
+  { label: "DIAMOND",    icon: "💎", subLabel: "ROYALE",        color1: "#1a1a2e", color2: "#16213e", accent: "#00d9ff" },
+  { label: "5 CR",       icon: "💰", subLabel: "CREDITS",       color1: "#0a3d5c", color2: "#0d4a6b", accent: "#00ff88" },
+  { label: "FF",         icon: "🔥", subLabel: "1000 💎",       color1: "#1a1a2e", color2: "#16213e", accent: "#ff6b35" },
+  { label: "2 CR",       icon: "🪙", subLabel: "CREDITS",       color1: "#0d4a6b", color2: "#0a3d5c", accent: "#00d9ff" },
+  { label: "PUBG",       icon: "🎯", subLabel: "600 UC",        color1: "#1a1a2e", color2: "#16213e", accent: "#ffd93d" },
 ];
 
-// Fake live feed data for immersion
-const LIVE_FEED = [
-  { name: "ProGamer_X", prize: "5 Cr", time: "10s ago", avatar: "🎮" },
-  { name: "FireKing22", prize: "3 Cr", time: "22s ago", avatar: "🔥" },
-  { name: "LudoMaster", prize: "2 Cr", time: "30s ago", avatar: "🎲" },
-  { name: "SniperBD", prize: "4 Cr", time: "45s ago", avatar: "🎯" },
-  { name: "NinjaFF", prize: "2 Cr", time: "1m ago", avatar: "⚡" },
+// ═══════════════════════════════════════════
+// LIVE FEED — 40 fake entries cycling randomly
+// ═══════════════════════════════════════════
+const PLAYER_NAMES = [
+  "ProGamer_X", "FireKing22", "LudoMaster", "SniperBD", "NinjaFF",
+  "ShadowKill", "StormRider", "DarkPhoenix", "CyberWolf", "BlazeFury",
+  "TigerClaw", "GhostRecon", "IronFist99", "NeonBlade", "ThunderBolt",
+  "VenomStrike", "DragonRage", "FrostBite", "SteelNerve", "RapidFire",
+  "AlphaWolf", "OmegaX", "HyperNova", "ZeroGravity", "MaxPayne",
+  "EliteForce", "WarMachine", "RocketMan", "BulletProof", "AceSniper",
+  "SwiftKill", "PhantomX", "VortexBD", "MegaStrike", "CobraKai",
+  "HawkEye99", "MadTitan", "PixelKing", "RunnerX", "LegendBD",
 ];
+
+const AVATARS = ["🎮", "🔥", "🎲", "🎯", "⚡", "💀", "🐉", "🦅", "👑", "💎", "🎖️", "⭐", "🏅", "🎪", "🎰", "🃏"];
+
+const PRIZES_VISUAL = [
+  "2 Cr", "3 Cr", "4 Cr", "5 Cr", "2 Cr", "3 Cr",
+  "Royal Pass", "Weekly", "Elite Pass", "Monthly",
+  "Premium Pass", "Diamond Royale", "2 Cr", "3 Cr",
+  "5 Cr", "4 Cr", "2 Cr", "3 Cr", "5 Cr", "2 Cr",
+];
+
+const TIMES = [
+  "2s ago", "5s ago", "8s ago", "12s ago", "15s ago", "20s ago", "25s ago",
+  "30s ago", "35s ago", "45s ago", "1m ago", "1m ago", "2m ago", "2m ago",
+  "3m ago", "3m ago", "4m ago", "5m ago", "5m ago", "6m ago",
+];
+
+function generateLiveFeed() {
+  const shuffled = [...PLAYER_NAMES].sort(() => Math.random() - 0.5);
+  return shuffled.map((name, i) => ({
+    name,
+    prize: PRIZES_VISUAL[i % PRIZES_VISUAL.length],
+    time: TIMES[i % TIMES.length],
+    avatar: AVATARS[i % AVATARS.length],
+  }));
+}
 
 const SpinWheel = ({ onClose }: SpinWheelProps) => {
   const { user } = useAuth();
@@ -49,19 +86,22 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
   const [countdown, setCountdown] = useState("");
   const [feedIndex, setFeedIndex] = useState(0);
 
-  // Rotating live feed
-  useEffect(() => {
-    const id = setInterval(() => setFeedIndex((i) => (i + 1) % LIVE_FEED.length), 3000);
-    return () => clearInterval(id);
-  }, []);
+  // Generate 40 live feed items once
+  const liveFeed = useMemo(() => generateLiveFeed(), []);
 
-  // Particles positions (memoize to avoid re-render jitter)
+  // Auto-cycle live feed every 2s
+  useEffect(() => {
+    const id = setInterval(() => setFeedIndex((i) => (i + 1) % liveFeed.length), 2000);
+    return () => clearInterval(id);
+  }, [liveFeed.length]);
+
+  // Background particles
   const particles = useMemo(() =>
-    Array.from({ length: 20 }, () => ({
+    Array.from({ length: 25 }, () => ({
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      size: 1 + Math.random() * 2,
-      dur: 2 + Math.random() * 3,
+      size: 1 + Math.random() * 3,
+      dur: 2 + Math.random() * 4,
       delay: Math.random() * 3,
     })), []);
 
@@ -82,6 +122,9 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
     return () => clearInterval(id);
   }, [nextSpinTime]);
 
+  // ═══════════════════════════════════════════
+  // DRAW PREMIUM WHEEL
+  // ═══════════════════════════════════════════
   const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -89,7 +132,7 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const displaySize = 340;
+    const displaySize = 360;
     canvas.width = displaySize * dpr;
     canvas.height = displaySize * dpr;
     canvas.style.width = `${displaySize}px`;
@@ -98,69 +141,76 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
 
     const cx = displaySize / 2;
     const cy = displaySize / 2;
-    const r = cx - 20;
+    const r = cx - 24;
     const segments = WHEEL_SEGMENTS.length;
     const sliceAngle = (2 * Math.PI) / segments;
 
     ctx.clearRect(0, 0, displaySize, displaySize);
 
-    // === Outer decorative rings ===
-    // Outermost glow
-    for (let i = 3; i >= 0; i--) {
+    // ── Outer decorative rings with multi-layer glow ──
+    for (let i = 5; i >= 0; i--) {
       ctx.save();
       ctx.beginPath();
-      ctx.arc(cx, cy, r + 12 + i * 2, 0, 2 * Math.PI);
-      ctx.strokeStyle = `rgba(0, 217, 255, ${0.08 + i * 0.04})`;
+      ctx.arc(cx, cy, r + 14 + i * 2, 0, 2 * Math.PI);
+      ctx.strokeStyle = `rgba(0, 217, 255, ${0.04 + i * 0.03})`;
       ctx.lineWidth = 1;
       ctx.stroke();
       ctx.restore();
     }
 
-    // Main outer ring with glow
+    // Main outer ring — double stroke
     ctx.save();
     ctx.beginPath();
-    ctx.arc(cx, cy, r + 6, 0, 2 * Math.PI);
+    ctx.arc(cx, cy, r + 8, 0, 2 * Math.PI);
     ctx.strokeStyle = "#00d9ff";
     ctx.lineWidth = 3;
     ctx.shadowColor = "#00d9ff";
-    ctx.shadowBlur = 25;
+    ctx.shadowBlur = 30;
     ctx.stroke();
     ctx.restore();
 
-    // Tick marks around outer ring
     ctx.save();
-    for (let i = 0; i < 60; i++) {
-      const angle = (i / 60) * Math.PI * 2;
-      const len = i % 5 === 0 ? 6 : 3;
-      const x1 = cx + Math.cos(angle) * (r + 8);
-      const y1 = cy + Math.sin(angle) * (r + 8);
-      const x2 = cx + Math.cos(angle) * (r + 8 + len);
-      const y2 = cy + Math.sin(angle) * (r + 8 + len);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 4, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(0,217,255,0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Tick marks (80 marks for premium feel)
+    ctx.save();
+    for (let i = 0; i < 80; i++) {
+      const angle = (i / 80) * Math.PI * 2;
+      const isMajor = i % 5 === 0;
+      const len = isMajor ? 7 : 3;
+      const x1 = cx + Math.cos(angle) * (r + 10);
+      const y1 = cy + Math.sin(angle) * (r + 10);
+      const x2 = cx + Math.cos(angle) * (r + 10 + len);
+      const y2 = cy + Math.sin(angle) * (r + 10 + len);
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
-      ctx.strokeStyle = i % 5 === 0 ? "rgba(0,217,255,0.8)" : "rgba(0,217,255,0.3)";
-      ctx.lineWidth = i % 5 === 0 ? 2 : 1;
+      ctx.strokeStyle = isMajor ? "rgba(0,217,255,0.9)" : "rgba(0,217,255,0.25)";
+      ctx.lineWidth = isMajor ? 2 : 1;
       ctx.stroke();
     }
     ctx.restore();
 
-    // === Draw rotating wheel ===
+    // ── Rotating segments ──
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.translate(-cx, -cy);
 
-    // Segments
     WHEEL_SEGMENTS.forEach((seg, i) => {
       const start = i * sliceAngle - Math.PI / 2;
       const end = start + sliceAngle;
+      const midAngle = start + sliceAngle / 2;
 
       // Gradient fill
-      const midAngle = start + sliceAngle / 2;
       const gx = cx + Math.cos(midAngle) * r * 0.5;
       const gy = cy + Math.sin(midAngle) * r * 0.5;
-      const grad = ctx.createRadialGradient(cx, cy, r * 0.3, gx, gy, r);
+      const grad = ctx.createRadialGradient(cx, cy, r * 0.25, gx, gy, r);
       grad.addColorStop(0, seg.color1);
       grad.addColorStop(1, seg.color2);
 
@@ -171,139 +221,152 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Segment border with glow
-      ctx.strokeStyle = "rgba(0, 217, 255, 0.25)";
+      // Segment border
+      ctx.strokeStyle = "rgba(0, 217, 255, 0.2)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Inner accent line
+      // Accent edge highlight
       ctx.save();
       ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, start, end);
-      ctx.closePath();
-      ctx.strokeStyle = `${seg.accent}15`;
-      ctx.lineWidth = 0.5;
+      ctx.arc(cx, cy, r - 1, start, end);
+      ctx.strokeStyle = `${seg.accent}18`;
+      ctx.lineWidth = 3;
       ctx.stroke();
       ctx.restore();
 
-      // === Segment text ===
+      // ── Segment content: icon + label + sublabel ──
       ctx.save();
       ctx.translate(cx, cy);
-      ctx.rotate(start + sliceAngle / 2);
+      ctx.rotate(midAngle);
       ctx.textAlign = "center";
 
+      // Icon (emoji)
+      ctx.font = "16px sans-serif";
+      ctx.fillText(seg.icon, r * 0.46, 1);
+
       // Main label
-      ctx.font = "bold 13px 'Orbitron', sans-serif";
+      ctx.font = "bold 10px 'Orbitron', sans-serif";
       ctx.fillStyle = seg.accent;
       ctx.shadowColor = seg.accent;
-      ctx.shadowBlur = 8;
-      ctx.fillText(seg.label, r * 0.62, seg.subLabel ? -3 : 4);
+      ctx.shadowBlur = 10;
+      ctx.fillText(seg.label, r * 0.72, -2);
 
       // Sub label
-      if (seg.subLabel) {
-        ctx.shadowBlur = 0;
-        ctx.font = "bold 7px 'Orbitron', sans-serif";
-        ctx.fillStyle = "rgba(255,255,255,0.7)";
-        ctx.fillText(seg.subLabel, r * 0.62, 9);
-      }
+      ctx.shadowBlur = 0;
+      ctx.font = "bold 6px 'Orbitron', sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.6)";
+      ctx.fillText(seg.subLabel, r * 0.72, 8);
+
       ctx.restore();
 
-      // Outer dot at segment boundary
+      // Boundary dot
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(start);
       ctx.beginPath();
-      ctx.arc(r - 3, 0, 2.5, 0, 2 * Math.PI);
+      ctx.arc(r - 2, 0, 2.5, 0, 2 * Math.PI);
       ctx.fillStyle = "#00d9ff";
       ctx.shadowColor = "#00d9ff";
-      ctx.shadowBlur = 6;
+      ctx.shadowBlur = 8;
       ctx.fill();
       ctx.restore();
     });
 
-    // === Inner decorative ring ===
+    // ── Inner decorative rings ──
     ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.35, 0, 2 * Math.PI);
-    ctx.strokeStyle = "rgba(0,217,255,0.3)";
+    ctx.arc(cx, cy, r * 0.38, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(0,217,255,0.25)";
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // === Center hub ===
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.33, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(0,217,255,0.12)";
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // ── Center hub — premium gradient ──
     const hubR = r * 0.28;
-    const hubGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, hubR);
-    hubGrad.addColorStop(0, "#0f2744");
-    hubGrad.addColorStop(0.7, "#091a30");
+    const hubGrad = ctx.createRadialGradient(cx, cy - 5, 0, cx, cy, hubR);
+    hubGrad.addColorStop(0, "#163050");
+    hubGrad.addColorStop(0.5, "#0d1f35");
     hubGrad.addColorStop(1, "#060e1a");
     ctx.beginPath();
     ctx.arc(cx, cy, hubR, 0, 2 * Math.PI);
     ctx.fillStyle = hubGrad;
     ctx.fill();
 
-    // Hub border glow
+    // Hub border glow — triple ring
     ctx.strokeStyle = "#00d9ff";
     ctx.lineWidth = 2.5;
     ctx.shadowColor = "#00d9ff";
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 25;
     ctx.stroke();
 
-    // Second inner ring
     ctx.beginPath();
-    ctx.arc(cx, cy, hubR - 4, 0, 2 * Math.PI);
-    ctx.strokeStyle = "rgba(0,217,255,0.2)";
+    ctx.arc(cx, cy, hubR - 5, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(0,217,255,0.25)";
     ctx.lineWidth = 1;
     ctx.shadowBlur = 0;
     ctx.stroke();
 
+    ctx.beginPath();
+    ctx.arc(cx, cy, hubR - 9, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(0,217,255,0.12)";
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
     // Center text
-    ctx.font = "bold 16px 'Orbitron', sans-serif";
+    ctx.font = "bold 15px 'Orbitron', sans-serif";
     ctx.fillStyle = "#00d9ff";
     ctx.textAlign = "center";
     ctx.shadowColor = "#00d9ff";
-    ctx.shadowBlur = 15;
-    ctx.fillText("SPIN", cx, cy - 6);
-    ctx.fillText("NOW", cx, cy + 14);
+    ctx.shadowBlur = 20;
+    ctx.fillText("SPIN", cx, cy - 5);
+    ctx.fillText("NOW", cx, cy + 13);
     ctx.shadowBlur = 0;
 
     ctx.restore(); // end rotation
 
-    // === Pointer (top) ===
+    // ── Pointer (top) — premium crystal shape ──
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(cx, 6);
-    ctx.lineTo(cx - 14, 36);
-    ctx.lineTo(cx + 14, 36);
+    ctx.moveTo(cx, 4);
+    ctx.lineTo(cx - 15, 38);
+    ctx.lineTo(cx + 15, 38);
     ctx.closePath();
 
-    const pGrad = ctx.createLinearGradient(cx, 6, cx, 36);
+    const pGrad = ctx.createLinearGradient(cx, 4, cx, 38);
     pGrad.addColorStop(0, "#00ffff");
-    pGrad.addColorStop(1, "#0088aa");
+    pGrad.addColorStop(0.5, "#00b4d8");
+    pGrad.addColorStop(1, "#006080");
     ctx.fillStyle = pGrad;
     ctx.shadowColor = "#00d9ff";
-    ctx.shadowBlur = 25;
+    ctx.shadowBlur = 30;
     ctx.fill();
 
-    // Pointer border
     ctx.strokeStyle = "#00ffff";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Pointer inner line
+    // Inner highlight
     ctx.beginPath();
-    ctx.moveTo(cx, 12);
-    ctx.lineTo(cx - 6, 30);
-    ctx.lineTo(cx + 6, 30);
+    ctx.moveTo(cx, 10);
+    ctx.lineTo(cx - 6, 32);
+    ctx.lineTo(cx + 6, 32);
     ctx.closePath();
-    ctx.fillStyle = "rgba(0,255,255,0.3)";
+    ctx.fillStyle = "rgba(0,255,255,0.25)";
     ctx.shadowBlur = 0;
     ctx.fill();
     ctx.restore();
   }, [rotation]);
 
-  useEffect(() => {
-    drawWheel();
-  }, [drawWheel]);
+  useEffect(() => { drawWheel(); }, [drawWheel]);
 
+  // ═══════════════════════════════════════════
+  // SPIN ACTION
+  // ═══════════════════════════════════════════
   const spin = async () => {
     if (!user) return;
     try {
@@ -334,21 +397,20 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
       }
 
       const wonCredits = data.prize.credits;
-      // Find a segment that shows this credit amount
+      // Land on a matching credit segment
       const segIdx = WHEEL_SEGMENTS.findIndex((s) => s.label === `${wonCredits} CR`);
       const sliceAngle = 360 / WHEEL_SEGMENTS.length;
       const targetAngle = 360 - (segIdx >= 0 ? segIdx : 0) * sliceAngle - sliceAngle / 2;
-      const spins = 7;
+      const spins = 8;
       const finalRotation = rotation + 360 * spins + targetAngle;
 
       let start: number | null = null;
-      const duration = 7000;
+      const duration = 7500;
 
       const animate = (timestamp: number) => {
         if (!start) start = timestamp;
         const elapsed = timestamp - start;
         const progress = Math.min(elapsed / duration, 1);
-        // Smoother easing
         const eased = 1 - Math.pow(1 - progress, 5);
         setRotation(rotation + (finalRotation - rotation) * eased);
 
@@ -357,10 +419,10 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
         } else {
           setResult(wonCredits);
           confetti({
-            particleCount: 250,
-            spread: 140,
+            particleCount: 300,
+            spread: 150,
             origin: { y: 0.4 },
-            colors: ["#00d9ff", "#00ff88", "#ffd93d", "#ff6b35", "#c084fc"],
+            colors: ["#00d9ff", "#00ff88", "#ffd93d", "#ff6b35", "#c084fc", "#ff3d71"],
           });
           toast.success(`🎉 You won ${wonCredits} Credits!`);
           setSpinning(false);
@@ -379,7 +441,16 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
     }
   };
 
-  const currentFeed = LIVE_FEED[feedIndex];
+  // Visible feed items (show 6 at a time in desktop panel, cycle through all 40)
+  const visibleFeed = useMemo(() => {
+    const items = [];
+    for (let i = 0; i < 8; i++) {
+      items.push(liveFeed[(feedIndex + i) % liveFeed.length]);
+    }
+    return items;
+  }, [feedIndex, liveFeed]);
+
+  const currentFeed = liveFeed[feedIndex];
 
   return (
     <motion.div
@@ -395,15 +466,14 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
         {particles.map((p, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full bg-primary"
-            style={{ left: p.left, top: p.top, width: p.size, height: p.size }}
-            animate={{ opacity: [0, 0.8, 0], scale: [0.5, 1.5, 0.5], y: [0, -30, 0] }}
+            className="absolute rounded-full"
+            style={{ left: p.left, top: p.top, width: p.size, height: p.size, background: "hsl(var(--primary))" }}
+            animate={{ opacity: [0, 0.7, 0], scale: [0.5, 1.5, 0.5], y: [0, -40, 0] }}
             transition={{ duration: p.dur, repeat: Infinity, delay: p.delay }}
           />
         ))}
-        {/* Scan lines effect */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,217,255,0.1) 2px, rgba(0,217,255,0.1) 4px)"
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,217,255,0.08) 2px, rgba(0,217,255,0.08) 4px)"
         }} />
       </div>
 
@@ -412,35 +482,29 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.85, opacity: 0 }}
         transition={{ type: "spring", damping: 22 }}
-        className="relative w-full max-w-2xl"
+        className="relative w-full max-w-3xl"
       >
-        {/* ====== HEADER ====== */}
+        {/* ════════ HEADER ════════ */}
         <div className="flex items-center justify-between mb-3 px-1">
           <div className="flex-1">
             <motion.h2
               initial={{ y: -10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="font-display font-black text-lg sm:text-xl tracking-[0.2em] text-primary uppercase"
+              className="font-display font-black text-lg sm:text-xl tracking-[0.2em] uppercase"
               style={{
+                color: "hsl(var(--primary))",
                 textShadow: "0 0 20px rgba(0,217,255,0.8), 0 0 60px rgba(0,217,255,0.3), 0 2px 4px rgba(0,0,0,0.5)",
               }}
             >
-              DAILY LUCKY SPIN & WIN
+              ⚡ DAILY LUCKY SPIN & WIN
             </motion.h2>
-            <p className="text-[10px] sm:text-xs tracking-[0.15em] uppercase mt-0.5"
-               style={{ color: "rgba(0,217,255,0.5)" }}>
-              PREMIER REWARDS
+            <p className="text-[10px] sm:text-xs tracking-[0.15em] uppercase mt-0.5 text-muted-foreground">
+              PREMIER REWARDS • SPIN DAILY
             </p>
           </div>
 
-          {/* Total Credits Badge */}
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg"
-                 style={{
-                   background: "linear-gradient(135deg, rgba(0,217,255,0.1), rgba(0,217,255,0.05))",
-                   border: "1px solid rgba(0,217,255,0.3)",
-                   boxShadow: "0 0 15px rgba(0,217,255,0.1)"
-                 }}>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg glass neon-border">
               <Star className="w-4 h-4 text-primary" />
               <span className="text-xs text-muted-foreground">Credits:</span>
               <span className="font-display font-bold text-primary text-sm">
@@ -458,45 +522,50 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
           </div>
         </div>
 
-        {/* ====== MAIN LAYOUT ====== */}
+        {/* ════════ MAIN LAYOUT ════════ */}
         <div className="flex gap-3">
-          {/* LEFT: Live Feed (desktop) */}
-          <div className="hidden lg:flex flex-col w-48 gap-2">
-            <div className="rounded-xl p-3 flex-1"
+          {/* LEFT: Live Feed panel (desktop) — shows 8 items from rotating 40 */}
+          <div className="hidden lg:flex flex-col w-52 gap-2">
+            <div className="rounded-xl p-3 flex-1 overflow-hidden"
                  style={{
-                   background: "linear-gradient(180deg, rgba(0,20,40,0.8), rgba(0,10,25,0.9))",
+                   background: "linear-gradient(180deg, rgba(0,20,40,0.85), rgba(0,10,25,0.95))",
                    border: "1px solid rgba(0,217,255,0.15)",
                    boxShadow: "inset 0 0 30px rgba(0,217,255,0.03)"
                  }}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="font-display text-[10px] font-bold tracking-[0.2em] text-primary/80 uppercase">
-                  LIVE FEED
+                <span className="font-display text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: "hsl(var(--primary) / 0.8)" }}>
+                  LIVE WINNERS
                 </span>
+                <span className="ml-auto text-[9px] text-muted-foreground">{liveFeed.length}+ spins</span>
               </div>
-              <div className="space-y-2">
-                {LIVE_FEED.map((f, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: feedIndex >= i ? 1 : 0.4, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex items-center gap-2 p-1.5 rounded-lg"
-                    style={{
-                      background: feedIndex === i ? "rgba(0,217,255,0.08)" : "transparent",
-                      transition: "background 0.3s"
-                    }}
-                  >
-                    <span className="text-lg">{f.avatar}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-medium text-foreground truncate">{f.name}</p>
-                      <p className="text-[9px] text-muted-foreground">
-                        won <span className="text-primary font-bold">{f.prize}</span>
-                        <span className="text-muted-foreground/50 ml-1">({f.time})</span>
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
+              <div className="space-y-1.5">
+                <AnimatePresence mode="popLayout">
+                  {visibleFeed.map((f, i) => (
+                    <motion.div
+                      key={`${f.name}-${feedIndex + i}`}
+                      initial={{ opacity: 0, x: -15, scale: 0.95 }}
+                      animate={{ opacity: i === 0 ? 1 : 0.7 - i * 0.07, x: 0, scale: 1 }}
+                      exit={{ opacity: 0, x: 15, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex items-center gap-2 p-1.5 rounded-lg"
+                      style={{
+                        background: i === 0 ? "rgba(0,217,255,0.1)" : "transparent",
+                        borderLeft: i === 0 ? "2px solid rgba(0,217,255,0.5)" : "2px solid transparent",
+                        transition: "all 0.3s"
+                      }}
+                    >
+                      <span className="text-base shrink-0">{f.avatar}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-medium text-foreground truncate">{f.name}</p>
+                        <p className="text-[9px] text-muted-foreground">
+                          won <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>{f.prize}</span>
+                          <span className="text-muted-foreground/40 ml-1">• {f.time}</span>
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -506,8 +575,8 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
             <div className="relative rounded-2xl p-4 sm:p-6 w-full flex flex-col items-center"
                  style={{
                    background: "linear-gradient(180deg, rgba(0,20,40,0.6), rgba(0,10,25,0.8))",
-                   border: "1px solid rgba(0,217,255,0.15)",
-                   boxShadow: "0 0 40px rgba(0,217,255,0.08), inset 0 0 40px rgba(0,217,255,0.02)"
+                   border: "1px solid rgba(0,217,255,0.12)",
+                   boxShadow: "0 0 50px rgba(0,217,255,0.06), inset 0 0 40px rgba(0,217,255,0.02)"
                  }}>
 
               {/* Mobile live feed ticker */}
@@ -522,43 +591,41 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
                     style={{ background: "rgba(0,217,255,0.06)", border: "1px solid rgba(0,217,255,0.1)" }}
                   >
                     <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-lg">{currentFeed.avatar}</span>
+                    <span className="text-base">{currentFeed.avatar}</span>
                     <span className="text-[10px] text-foreground font-medium">{currentFeed.name}</span>
                     <span className="text-[10px] text-muted-foreground">won</span>
-                    <span className="text-[10px] text-primary font-bold">{currentFeed.prize}</span>
+                    <span className="text-[10px] font-bold" style={{ color: "hsl(var(--primary))" }}>{currentFeed.prize}</span>
                     <span className="text-[9px] text-muted-foreground ml-auto">{currentFeed.time}</span>
                   </motion.div>
                 </AnimatePresence>
               </div>
 
               {/* Mobile credits */}
-              <div className="sm:hidden flex items-center gap-2 mb-3 px-3 py-1.5 rounded-lg"
-                   style={{
-                     background: "rgba(0,217,255,0.06)",
-                     border: "1px solid rgba(0,217,255,0.15)"
-                   }}>
+              <div className="sm:hidden flex items-center gap-2 mb-3 px-3 py-1.5 rounded-lg glass neon-border">
                 <Star className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[10px] text-muted-foreground">Total Credits:</span>
+                <span className="text-[10px] text-muted-foreground">Credits:</span>
                 <span className="font-display font-bold text-primary text-sm">{wallet?.credits ?? 0}</span>
               </div>
 
-              {/* Canvas wheel with glow wrapper */}
-              <div className="relative" style={{ width: 340, height: 340 }}>
-                {/* Outer glow aura */}
-                <div className="absolute -inset-6 rounded-full"
-                     style={{
-                       background: "radial-gradient(circle, rgba(0,217,255,0.12) 0%, transparent 70%)",
-                       filter: "blur(10px)"
-                     }} />
+              {/* Canvas wheel */}
+              <div className="relative" style={{ width: 360, height: 360 }}>
+                {/* Multi-layer glow aura */}
+                <div className="absolute -inset-8 rounded-full" style={{
+                  background: "radial-gradient(circle, rgba(0,217,255,0.15) 0%, rgba(0,217,255,0.05) 40%, transparent 70%)",
+                  filter: "blur(12px)"
+                }} />
+                <div className="absolute -inset-4 rounded-full" style={{
+                  background: "radial-gradient(circle, rgba(0,217,255,0.08) 0%, transparent 60%)",
+                }} />
                 <canvas ref={canvasRef} className="relative z-10" />
 
-                {/* Spinning glow effect */}
+                {/* Spinning border effect */}
                 {spinning && (
                   <motion.div
                     className="absolute inset-0 rounded-full z-20 pointer-events-none"
-                    style={{ border: "2px solid rgba(0,217,255,0.4)" }}
-                    animate={{ rotate: 360, opacity: [0.3, 0.8, 0.3] }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    style={{ border: "2px solid rgba(0,217,255,0.5)" }}
+                    animate={{ rotate: 360, opacity: [0.2, 0.9, 0.2] }}
+                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                   />
                 )}
               </div>
@@ -576,12 +643,12 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <Trophy className="w-5 h-5 text-primary" />
-                        <span className="text-sm text-muted-foreground">YOU WON</span>
+                        <span className="text-sm text-muted-foreground uppercase tracking-wider">YOU WON</span>
                         <Trophy className="w-5 h-5 text-primary" />
                       </div>
                       <p className="font-display font-black text-4xl tracking-wider"
                          style={{
-                           color: "#00d9ff",
+                           color: "hsl(var(--primary))",
                            textShadow: "0 0 30px rgba(0,217,255,0.8), 0 0 60px rgba(0,217,255,0.3)"
                          }}>
                         {result} CREDITS!
@@ -602,11 +669,11 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
                         {countdown.split(":").map((unit, i) => (
                           <div key={i} className="flex items-center gap-1">
                             {i > 0 && <span className="text-primary font-bold text-lg">:</span>}
-                            <div className="px-2.5 py-1 rounded-lg font-display font-bold text-xl tracking-widest"
+                            <div className="px-3 py-1.5 rounded-lg font-display font-bold text-xl tracking-widest"
                                  style={{
                                    background: "rgba(0,217,255,0.08)",
                                    border: "1px solid rgba(0,217,255,0.2)",
-                                   color: "#00d9ff",
+                                   color: "hsl(var(--primary))",
                                    textShadow: "0 0 10px rgba(0,217,255,0.5)"
                                  }}>
                               {unit}
@@ -643,11 +710,10 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
                   border: "1px solid rgba(0,217,255,0.4)",
                   boxShadow: spinning || countdown
                     ? "none"
-                    : "0 0 20px rgba(0,217,255,0.4), 0 0 40px rgba(0,217,255,0.15)",
+                    : "0 0 25px rgba(0,217,255,0.4), 0 0 50px rgba(0,217,255,0.15)",
                   color: spinning || countdown ? "rgba(0,217,255,0.5)" : "#001a2e",
                 }}
               >
-                {/* Shimmer overlay */}
                 {!spinning && !countdown && result === null && (
                   <div className="absolute inset-0 opacity-30"
                        style={{
@@ -672,43 +738,43 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
           </div>
 
           {/* RIGHT: Earn More panel (desktop) */}
-          <div className="hidden md:flex flex-col w-44 gap-2">
+          <div className="hidden md:flex flex-col w-48 gap-2">
             <button
               onClick={() => setShowMissions(true)}
               className="flex-1 rounded-xl p-4 flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               style={{
-                background: "linear-gradient(180deg, rgba(0,20,40,0.8), rgba(0,10,25,0.9))",
+                background: "linear-gradient(180deg, rgba(0,20,40,0.85), rgba(0,10,25,0.95))",
                 border: "1px solid rgba(0,217,255,0.2)",
-                boxShadow: "0 0 20px rgba(0,217,255,0.05)",
+                boxShadow: "0 0 25px rgba(0,217,255,0.05)",
               }}
             >
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center"
+              <div className="w-16 h-16 rounded-xl flex items-center justify-center"
                    style={{
                      background: "linear-gradient(135deg, rgba(0,217,255,0.15), rgba(0,255,136,0.1))",
-                     border: "1px solid rgba(0,217,255,0.25)",
-                     boxShadow: "0 0 15px rgba(0,217,255,0.15)"
+                     border: "1px solid rgba(0,217,255,0.3)",
+                     boxShadow: "0 0 20px rgba(0,217,255,0.15)"
                    }}>
-                <Gift className="w-7 h-7 text-primary" />
+                <Gift className="w-8 h-8 text-primary" />
               </div>
-              <span className="font-display font-bold text-xs text-primary tracking-wider">
+              <span className="font-display font-bold text-xs tracking-wider" style={{ color: "hsl(var(--primary))" }}>
                 EARN MORE
               </span>
               <span className="text-[10px] text-muted-foreground text-center leading-tight">
                 Complete quick missions for extra credits
               </span>
-              <div className="flex items-center gap-1 mt-1 px-3 py-1 rounded-full"
+              <div className="flex items-center gap-1 mt-1 px-3 py-1.5 rounded-full"
                    style={{
-                     background: "rgba(0,217,255,0.08)",
-                     border: "1px solid rgba(0,217,255,0.15)"
+                     background: "rgba(0,217,255,0.1)",
+                     border: "1px solid rgba(0,217,255,0.2)"
                    }}>
-                <span className="text-[9px] text-primary font-bold tracking-wider">VIEW MISSIONS</span>
+                <span className="text-[9px] font-bold tracking-wider" style={{ color: "hsl(var(--primary))" }}>VIEW MISSIONS</span>
                 <ChevronRight className="w-3 h-3 text-primary" />
               </div>
             </button>
           </div>
         </div>
 
-        {/* Mobile: Earn More + Live Feed row */}
+        {/* Mobile: Earn More bottom bar */}
         <div className="md:hidden mt-3 flex gap-2">
           <button
             onClick={() => setShowMissions(true)}
@@ -727,7 +793,7 @@ const SpinWheel = ({ onClose }: SpinWheelProps) => {
               <Gift className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1 text-left">
-              <span className="font-display font-bold text-xs text-primary tracking-wider block">EARN MORE CREDITS</span>
+              <span className="font-display font-bold text-xs tracking-wider block" style={{ color: "hsl(var(--primary))" }}>EARN MORE CREDITS</span>
               <span className="text-[10px] text-muted-foreground">Complete missions</span>
             </div>
             <ChevronRight className="w-4 h-4 text-primary shrink-0" />
