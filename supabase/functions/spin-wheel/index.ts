@@ -6,14 +6,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Players ALWAYS get low prizes. High values are just visual on the wheel.
 const PRIZES = [
-  { credits: 5, probability: 0.35, label: "5 Credits" },
-  { credits: 10, probability: 0.25, label: "10 Credits" },
-  { credits: 15, probability: 0.15, label: "15 Credits" },
-  { credits: 25, probability: 0.12, label: "25 Credits" },
-  { credits: 50, probability: 0.08, label: "50 Credits" },
-  { credits: 75, probability: 0.04, label: "75 Credits" },
-  { credits: 100, probability: 0.01, label: "100 Credits" },
+  { credits: 2, probability: 0.30, label: "2 Credits" },
+  { credits: 3, probability: 0.30, label: "3 Credits" },
+  { credits: 4, probability: 0.20, label: "4 Credits" },
+  { credits: 5, probability: 0.15, label: "5 Credits" },
+  { credits: 10, probability: 0.04, label: "10 Credits" },
+  { credits: 15, probability: 0.009, label: "15 Credits" },
+  { credits: 25, probability: 0.001, label: "25 Credits" },
 ];
 
 function spinWheel(): typeof PRIZES[0] {
@@ -23,7 +24,7 @@ function spinWheel(): typeof PRIZES[0] {
     cumulative += prize.probability;
     if (random <= cumulative) return prize;
   }
-  return PRIZES[0];
+  return PRIZES[0]; // fallback: 2 credits
 }
 
 Deno.serve(async (req) => {
