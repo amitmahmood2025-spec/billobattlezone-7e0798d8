@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { importX509, jwtVerify } from "https://esm.sh/jose@5.2.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,25 +7,52 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const FIREBASE_PROJECT_ID = "billobattlehub";
+let cachedCerts: Record<string, string> | null = null;
+let certExpiry = 0;
+
+async function getGoogleCerts(): Promise<Record<string, string>> {
+  if (cachedCerts && Date.now() < certExpiry) return cachedCerts;
+  const res = await fetch(
+    "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+  );
+  cachedCerts = await res.json();
+  const maxAge = res.headers.get("cache-control")?.match(/max-age=(\d+)/)?.[1];
+  certExpiry = Date.now() + (maxAge ? parseInt(maxAge) * 1000 : 3600000);
+  return cachedCerts!;
+}
+
+async function verifyFirebaseToken(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) throw new Error("No token");
+  const token = authHeader.substring(7);
+  const [headerB64] = token.split(".");
+  const header = JSON.parse(atob(headerB64.replace(/-/g, "+").replace(/_/g, "/")));
+  const certs = await getGoogleCerts();
+  const cert = certs[header.kid];
+  if (!cert) throw new Error("Invalid key ID");
+  const key = await importX509(cert, "RS256");
+  const { payload } = await jwtVerify(token, key, {
+    issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+    audience: FIREBASE_PROJECT_ID,
+  });
+  if (!payload.sub) throw new Error("No subject");
+  return payload.sub;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { firebaseUid, action, data } = await req.json();
+    const firebaseUid = await verifyFirebaseToken(req);
+    const { action, data } = await req.json();
 
-    if (!firebaseUid || !action) {
+    if (!action) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
+        JSON.stringify({ error: "Missing action" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (typeof firebaseUid !== "string" || firebaseUid.length > 128 || !/^[a-zA-Z0-9]+$/.test(firebaseUid)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
