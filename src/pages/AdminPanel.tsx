@@ -5,7 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import TournamentManager from "@/components/admin/TournamentManager";
-import AdminManager from "@/components/admin/AdminManager";
+import ModeratorManager from "@/components/admin/ModeratorManager";
 import TaskManager from "@/components/admin/TaskManager";
 import TelegramTaskManager from "@/components/admin/TelegramTaskManager";
 import { Button } from "@/components/ui/button";
