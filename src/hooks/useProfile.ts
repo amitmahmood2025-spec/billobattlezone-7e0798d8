@@ -36,6 +36,7 @@ export interface ProfileData {
   wallet: Wallet | null;
   streak: DailyStreak | null;
   isAdmin: boolean;
+  isModerator: boolean;
 }
 
 export const useProfile = () => {
