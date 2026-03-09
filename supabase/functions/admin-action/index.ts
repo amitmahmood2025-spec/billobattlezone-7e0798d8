@@ -559,8 +559,10 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const msg = error instanceof Error ? error.message : "Internal server error";
+    const status = msg === "No token" || msg === "Invalid key ID" || msg === "No subject" ? 401 : 500;
+    if (status === 500) console.error("Error:", error);
+    return new Response(JSON.stringify({ error: status === 401 ? "Unauthorized" : "Internal server error" }),
+      { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
