@@ -96,6 +96,9 @@ export const useProfile = () => {
         .eq("role", "admin")
         .maybeSingle();
 
+      // Clear referral code after successful sync
+      localStorage.removeItem("bbz_referral_code");
+
       setData({
         profile: profileData,
         wallet: profileData.wallets,
