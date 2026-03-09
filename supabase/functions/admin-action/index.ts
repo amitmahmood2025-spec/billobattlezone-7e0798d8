@@ -134,6 +134,61 @@ Deno.serve(async (req) => {
         break;
       }
 
+      // ========== MODERATOR MANAGEMENT ==========
+      case "add_moderator": {
+        const { emailOrUsername } = data;
+        if (!emailOrUsername) {
+          return new Response(JSON.stringify({ error: "Email or username required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const { data: modProfile } = await supabase
+          .from("profiles").select("id")
+          .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
+          .single();
+        if (!modProfile) {
+          return new Response(JSON.stringify({ error: "User not found" }),
+            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        await supabase.from("user_roles").upsert(
+          { user_id: modProfile.id, role: "moderator" },
+          { onConflict: "user_id,role" }
+        );
+        result = { success: true, message: "Moderator added" };
+        break;
+      }
+
+      case "remove_moderator": {
+        const { targetUserId } = data;
+        if (!targetUserId) {
+          return new Response(JSON.stringify({ error: "Target user ID required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        // Remove role and all permissions
+        await supabase.from("role_permissions").delete().eq("user_id", targetUserId);
+        await supabase.from("user_roles").delete().eq("user_id", targetUserId).eq("role", "moderator");
+        result = { success: true, message: "Moderator removed" };
+        break;
+      }
+
+      case "toggle_permission": {
+        const { targetUserId, permission, enabled } = data;
+        if (!targetUserId || !permission) {
+          return new Response(JSON.stringify({ error: "Missing fields" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        if (enabled) {
+          await supabase.from("role_permissions").upsert(
+            { user_id: targetUserId, permission, granted_by: profile.id },
+            { onConflict: "user_id,permission" }
+          );
+        } else {
+          await supabase.from("role_permissions").delete()
+            .eq("user_id", targetUserId).eq("permission", permission);
+        }
+        result = { success: true, message: `Permission ${enabled ? "granted" : "revoked"}` };
+        break;
+      }
+
       // ========== TASK MANAGEMENT ==========
       case "create_task": {
         const { title, description, reward_credits, task_type, reset_type, max_claims_per_period, cooldown_hours, icon, sort_order, task_url, verification_seconds } = data;

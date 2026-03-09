@@ -197,7 +197,7 @@ const AdminPanel = () => {
             <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="telegram" className="flex items-center gap-1"><Bot className="w-3 h-3" /> Telegram</TabsTrigger>
-            <TabsTrigger value="admins">Admins</TabsTrigger>
+            <TabsTrigger value="admins">Staff</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
