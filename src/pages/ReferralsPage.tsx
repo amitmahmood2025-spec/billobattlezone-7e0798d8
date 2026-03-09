@@ -206,7 +206,7 @@ const ReferralsPage = () => {
 
         {/* Tab Navigation */}
         <div className="flex gap-2">
-          {(["overview", "friends", "rewards"] as const).map((tab) => (
+          {(["overview", "leaderboard", "friends", "rewards"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -216,7 +216,7 @@ const ReferralsPage = () => {
                   : "glass text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tab === "overview" ? "How It Works" : tab}
+              {tab === "overview" ? "How It Works" : tab === "leaderboard" ? "🏆 Top 10" : tab}
             </button>
           ))}
         </div>
