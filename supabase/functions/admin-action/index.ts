@@ -125,14 +125,27 @@ Deno.serve(async (req) => {
       // ========== ADMIN MANAGEMENT ==========
       case "add_admin": {
         const { emailOrUsername } = data;
-        if (!emailOrUsername) {
+        if (!emailOrUsername || typeof emailOrUsername !== "string") {
           return new Response(JSON.stringify({ error: "Email or username required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        const { data: targetProfile } = await supabase
-          .from("profiles").select("id")
-          .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
-          .single();
+        // Sanitize input to prevent SQL injection via .or()
+        const sanitizedAdmin = emailOrUsername.trim().slice(0, 255);
+        if (!/^[a-zA-Z0-9@._\-+]+$/.test(sanitizedAdmin)) {
+          return new Response(JSON.stringify({ error: "Invalid email/username format" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        // Use separate queries instead of .or() to prevent injection
+        let targetProfile;
+        const { data: byEmail } = await supabase
+          .from("profiles").select("id").eq("email", sanitizedAdmin).maybeSingle();
+        if (byEmail) {
+          targetProfile = byEmail;
+        } else {
+          const { data: byUsername } = await supabase
+            .from("profiles").select("id").eq("username", sanitizedAdmin).maybeSingle();
+          targetProfile = byUsername;
+        }
 
         if (!targetProfile) {
           return new Response(JSON.stringify({ error: "User not found" }),
