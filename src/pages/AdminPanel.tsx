@@ -260,7 +260,7 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="admins" className="mt-4">
-            <AdminManager />
+            <ModeratorManager />
           </TabsContent>
 
           <TabsContent value="telegram" className="mt-4">
