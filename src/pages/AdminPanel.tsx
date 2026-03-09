@@ -45,7 +45,7 @@ interface AdminStats {
 
 const AdminPanel = () => {
   const { user } = useAuth();
-  const { isAdmin } = useProfile();
+  const { isAdmin, isModerator } = useProfile();
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats>({
