@@ -178,14 +178,25 @@ Deno.serve(async (req) => {
       // ========== MODERATOR MANAGEMENT ==========
       case "add_moderator": {
         const { emailOrUsername } = data;
-        if (!emailOrUsername) {
+        if (!emailOrUsername || typeof emailOrUsername !== "string") {
           return new Response(JSON.stringify({ error: "Email or username required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        const { data: modProfile } = await supabase
-          .from("profiles").select("id")
-          .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
-          .single();
+        const sanitizedMod = emailOrUsername.trim().slice(0, 255);
+        if (!/^[a-zA-Z0-9@._\-+]+$/.test(sanitizedMod)) {
+          return new Response(JSON.stringify({ error: "Invalid email/username format" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        let modProfile;
+        const { data: modByEmail } = await supabase
+          .from("profiles").select("id").eq("email", sanitizedMod).maybeSingle();
+        if (modByEmail) {
+          modProfile = modByEmail;
+        } else {
+          const { data: modByUsername } = await supabase
+            .from("profiles").select("id").eq("username", sanitizedMod).maybeSingle();
+          modProfile = modByUsername;
+        }
         if (!modProfile) {
           return new Response(JSON.stringify({ error: "User not found" }),
             { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
