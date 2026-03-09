@@ -46,6 +46,7 @@ export const useProfile = () => {
     wallet: null,
     streak: null,
     isAdmin: false,
+    isModerator: false,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
