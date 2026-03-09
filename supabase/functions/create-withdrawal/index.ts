@@ -47,13 +47,30 @@ Deno.serve(async (req) => {
 
   try {
     const firebaseUid = await verifyFirebaseToken(req);
-    const { tournamentId } = await req.json();
+    const { paymentMethod, amount, accountNumber } = await req.json();
 
-    if (!tournamentId) {
-      return new Response(
-        JSON.stringify({ error: "Missing tournament ID" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Validate
+    if (!paymentMethod || !amount || !accountNumber) {
+      return new Response(JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const validMethods = ["bkash", "nagad", "rocket", "binance"];
+    if (!validMethods.includes(paymentMethod)) {
+      return new Response(JSON.stringify({ error: "Invalid payment method" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const amountNum = Number(amount);
+    if (isNaN(amountNum) || amountNum <= 0 || amountNum > 1000000) {
+      return new Response(JSON.stringify({ error: "Invalid amount" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const acctNum = String(accountNumber).slice(0, 100).trim();
+    if (!acctNum) {
+      return new Response(JSON.stringify({ error: "Invalid account number" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const supabase = createClient(
@@ -62,52 +79,63 @@ Deno.serve(async (req) => {
     );
 
     const { data: profile } = await supabase
-      .from("profiles").select("id").eq("firebase_uid", firebaseUid).single();
+      .from("profiles").select("id, is_banned").eq("firebase_uid", firebaseUid).single();
 
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-
-    const { data: entry } = await supabase
-      .from("tournament_entries")
-      .select("id")
-      .eq("tournament_id", tournamentId)
-      .eq("profile_id", profile.id)
-      .maybeSingle();
-
-    if (!entry) {
-      return new Response(JSON.stringify({ error: "You have not joined this tournament" }),
+    if (profile.is_banned) {
+      return new Response(JSON.stringify({ error: "Account suspended" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { data: tournament } = await supabase
-      .from("tournaments")
-      .select("room_id, room_password, status")
-      .eq("id", tournamentId)
-      .single();
+    // Check min withdrawal
+    const { data: settings } = await supabase
+      .from("payment_settings").select("min_withdrawal")
+      .eq("payment_method", paymentMethod).eq("is_active", true).maybeSingle();
 
-    if (!tournament) {
-      return new Response(JSON.stringify({ error: "Tournament not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const minWithdrawal = settings?.min_withdrawal || 100;
+    if (amountNum < minWithdrawal) {
+      return new Response(JSON.stringify({ error: `Minimum withdrawal is ৳${minWithdrawal}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    if (tournament.status !== "live") {
-      return new Response(
-        JSON.stringify({ 
-          room_id: null, 
-          room_password: null, 
-          message: "Room info will be available when the match goes LIVE" 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Check balance atomically
+    const { data: wallet } = await supabase
+      .from("wallets").select("*").eq("profile_id", profile.id).single();
+
+    if (!wallet || (wallet.cash || 0) < amountNum) {
+      return new Response(JSON.stringify({ error: "Insufficient cash balance" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // Deduct cash
+    await supabase.from("wallets").update({
+      cash: (wallet.cash || 0) - amountNum,
+    }).eq("id", wallet.id);
+
+    // Create withdrawal
+    await supabase.from("withdrawals").insert({
+      profile_id: profile.id,
+      amount: amountNum,
+      payment_method: paymentMethod,
+      account_number: acctNum,
+      status: "pending",
+    });
+
+    // Record transaction
+    await supabase.from("transactions").insert({
+      profile_id: profile.id,
+      type: "cash_withdraw",
+      amount: -amountNum,
+      balance_before: wallet.cash,
+      balance_after: (wallet.cash || 0) - amountNum,
+      description: `Withdrawal via ${paymentMethod}`,
+    });
 
     return new Response(
-      JSON.stringify({ 
-        room_id: tournament.room_id, 
-        room_password: tournament.room_password 
-      }),
+      JSON.stringify({ success: true, message: "Withdrawal request submitted" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

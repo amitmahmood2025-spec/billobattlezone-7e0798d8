@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 export interface Profile {
   id: string;
@@ -62,15 +63,13 @@ export const useProfile = () => {
       setLoading(true);
       setError(null);
 
-      // Call sync-profile edge function
+      const headers = await getAuthHeaders();
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-profile`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
+          headers,
           body: JSON.stringify({
             firebaseUser: {
               uid: user.uid,
@@ -100,7 +99,6 @@ export const useProfile = () => {
       const hasAdmin = (userRoles || []).some((r) => r.role === "admin");
       const hasMod = (userRoles || []).some((r) => r.role === "moderator");
 
-      // Clear referral code after successful sync
       localStorage.removeItem("bbz_referral_code");
 
       setData({

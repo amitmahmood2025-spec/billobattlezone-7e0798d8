@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 
 export interface Task {
@@ -45,7 +46,6 @@ export const useTasks = (profileId: string | undefined) => {
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
 
-      // Filter out Telegram-only tasks (those with [TG] prefix or telegram in description)
       const mainSiteTasks = (tasksData || []).filter((t: any) => 
         !t.title?.includes("[TG]") && !t.description?.toLowerCase().includes("[telegram]")
       );
@@ -80,18 +80,13 @@ export const useTasks = (profileId: string | undefined) => {
     try {
       setClaiming(taskId);
 
+      const headers = await getAuthHeaders();
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/claim-task`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            firebaseUid: user.uid,
-            taskId,
-          }),
+          headers,
+          body: JSON.stringify({ taskId }),
         }
       );
 
@@ -105,9 +100,7 @@ export const useTasks = (profileId: string | undefined) => {
         description: "Task reward claimed successfully",
       });
 
-      // Refresh tasks
       await fetchTasks();
-
       return result;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to claim";
@@ -120,16 +113,13 @@ export const useTasks = (profileId: string | undefined) => {
 
   const canClaimTask = (task: Task): boolean => {
     const userTask = userTasks[task.id];
-    
-    if (!userTask) return true; // Never claimed
+    if (!userTask) return true;
     if (task.reset_type === "never" && userTask.is_claimed) return false;
-    
     if (task.reset_type === "daily" && userTask.last_claimed_at) {
       const today = new Date().toISOString().split("T")[0];
       const lastClaimed = new Date(userTask.last_claimed_at).toISOString().split("T")[0];
       if (lastClaimed === today) return false;
     }
-
     return true;
   };
 

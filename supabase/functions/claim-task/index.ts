@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { importX509, jwtVerify } from "https://esm.sh/jose@5.2.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,26 +7,53 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const FIREBASE_PROJECT_ID = "billobattlehub";
+let cachedCerts: Record<string, string> | null = null;
+let certExpiry = 0;
+
+async function getGoogleCerts(): Promise<Record<string, string>> {
+  if (cachedCerts && Date.now() < certExpiry) return cachedCerts;
+  const res = await fetch(
+    "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+  );
+  cachedCerts = await res.json();
+  const maxAge = res.headers.get("cache-control")?.match(/max-age=(\d+)/)?.[1];
+  certExpiry = Date.now() + (maxAge ? parseInt(maxAge) * 1000 : 3600000);
+  return cachedCerts!;
+}
+
+async function verifyFirebaseToken(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) throw new Error("No token");
+  const token = authHeader.substring(7);
+  const [headerB64] = token.split(".");
+  const header = JSON.parse(atob(headerB64.replace(/-/g, "+").replace(/_/g, "/")));
+  const certs = await getGoogleCerts();
+  const cert = certs[header.kid];
+  if (!cert) throw new Error("Invalid key ID");
+  const key = await importX509(cert, "RS256");
+  const { payload } = await jwtVerify(token, key, {
+    issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+    audience: FIREBASE_PROJECT_ID,
+  });
+  if (!payload.sub) throw new Error("No subject");
+  return payload.sub;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const firebaseUid = await verifyFirebaseToken(req);
     const body = await req.json();
-    const { firebaseUid, taskId, taskStepId, isStepClaim } = body;
+    const { taskId, taskStepId, isStepClaim } = body;
 
-    if (!firebaseUid || (!taskId && !taskStepId)) {
+    if (!taskId && !taskStepId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (typeof firebaseUid !== "string" || firebaseUid.length > 128 || !/^[a-zA-Z0-9]+$/.test(firebaseUid)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -53,7 +81,7 @@ Deno.serve(async (req) => {
       .from("task_claims").select("credits_earned")
       .eq("profile_id", profile.id).gte("claimed_at", `${today}T00:00:00Z`);
 
-    const totalEarnedToday = (todayClaims || []).reduce((sum, c) => sum + (c.credits_earned || 0), 0);
+    const totalEarnedToday = (todayClaims || []).reduce((sum: number, c: any) => sum + (c.credits_earned || 0), 0);
 
     if (totalEarnedToday >= 200) {
       return new Response(JSON.stringify({ error: "Daily credit limit reached (200 credits)" }),
@@ -86,7 +114,6 @@ Deno.serve(async (req) => {
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Check if already completed
       const { data: existing } = await supabase
         .from("user_task_steps").select("id")
         .eq("profile_id", profile.id).eq("task_step_id", taskStepId).maybeSingle();
@@ -98,7 +125,6 @@ Deno.serve(async (req) => {
 
       const creditsToAward = Math.min(step.reward_credits, 200 - totalEarnedToday);
 
-      // Get wallet
       const { data: wallet } = await supabase
         .from("wallets").select("*").eq("profile_id", profile.id).single();
 
@@ -205,8 +231,10 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const msg = error instanceof Error ? error.message : "Internal server error";
+    const status = msg === "No token" || msg === "Invalid key ID" || msg === "No subject" ? 401 : 500;
+    if (status === 500) console.error("Error:", error);
+    return new Response(JSON.stringify({ error: status === 401 ? "Unauthorized" : "Internal server error" }),
+      { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

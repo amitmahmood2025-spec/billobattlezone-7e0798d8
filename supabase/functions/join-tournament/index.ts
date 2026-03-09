@@ -47,11 +47,11 @@ Deno.serve(async (req) => {
 
   try {
     const firebaseUid = await verifyFirebaseToken(req);
-    const { tournamentId } = await req.json();
+    const { tournamentId, payWithCredits, gameId, gameName } = await req.json();
 
-    if (!tournamentId) {
+    if (!tournamentId || !gameId || !gameName) {
       return new Response(
-        JSON.stringify({ error: "Missing tournament ID" }),
+        JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -61,53 +61,95 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Get profile
     const { data: profile } = await supabase
-      .from("profiles").select("id").eq("firebase_uid", firebaseUid).single();
+      .from("profiles").select("id, is_banned").eq("firebase_uid", firebaseUid).single();
 
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-
-    const { data: entry } = await supabase
-      .from("tournament_entries")
-      .select("id")
-      .eq("tournament_id", tournamentId)
-      .eq("profile_id", profile.id)
-      .maybeSingle();
-
-    if (!entry) {
-      return new Response(JSON.stringify({ error: "You have not joined this tournament" }),
+    if (profile.is_banned) {
+      return new Response(JSON.stringify({ error: "Account suspended" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Check if already joined
+    const { data: existingEntry } = await supabase
+      .from("tournament_entries").select("id")
+      .eq("tournament_id", tournamentId).eq("profile_id", profile.id).maybeSingle();
+
+    if (existingEntry) {
+      return new Response(JSON.stringify({ error: "Already joined this tournament" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Get tournament (lock via select for atomic check)
     const { data: tournament } = await supabase
-      .from("tournaments")
-      .select("room_id, room_password, status")
-      .eq("id", tournamentId)
-      .single();
+      .from("tournaments").select("*")
+      .eq("id", tournamentId).eq("status", "upcoming").single();
 
     if (!tournament) {
-      return new Response(JSON.stringify({ error: "Tournament not found" }),
+      return new Response(JSON.stringify({ error: "Tournament not found or not open" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    if (tournament.status !== "live") {
-      return new Response(
-        JSON.stringify({ 
-          room_id: null, 
-          room_password: null, 
-          message: "Room info will be available when the match goes LIVE" 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (tournament.max_participants && (tournament.current_participants || 0) >= tournament.max_participants) {
+      return new Response(JSON.stringify({ error: "Tournament is full" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Get wallet and check balance
+    const { data: wallet } = await supabase
+      .from("wallets").select("*").eq("profile_id", profile.id).single();
+
+    if (!wallet) {
+      return new Response(JSON.stringify({ error: "Wallet not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const useCredits = payWithCredits !== false;
+    const balance = useCredits ? (wallet.credits || 0) : (wallet.cash || 0);
+
+    if (balance < tournament.entry_fee) {
+      return new Response(JSON.stringify({ error: `Insufficient ${useCredits ? "credits" : "cash"}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Deduct balance
+    const field = useCredits ? "credits" : "cash";
+    await supabase.from("wallets").update({
+      [field]: balance - tournament.entry_fee,
+    }).eq("id", wallet.id);
+
+    // Create entry
+    await supabase.from("tournament_entries").insert({
+      tournament_id: tournamentId,
+      profile_id: profile.id,
+      fee_paid: tournament.entry_fee,
+      fee_type: useCredits ? "credits" : "cash",
+      game_id: String(gameId).slice(0, 50),
+      game_name: String(gameName).slice(0, 50),
+    });
+
+    // Update participant count
+    await supabase.from("tournaments").update({
+      current_participants: (tournament.current_participants || 0) + 1,
+    }).eq("id", tournamentId);
+
+    // Record transaction
+    await supabase.from("transactions").insert({
+      profile_id: profile.id,
+      type: useCredits ? "match_entry_credit" : "match_entry_cash",
+      amount: -tournament.entry_fee,
+      balance_before: balance,
+      balance_after: balance - tournament.entry_fee,
+      description: `Tournament entry: ${tournament.title}`,
+      reference_id: tournamentId,
+    });
+
     return new Response(
-      JSON.stringify({ 
-        room_id: tournament.room_id, 
-        room_password: tournament.room_password 
-      }),
+      JSON.stringify({ success: true, message: "Joined tournament!" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

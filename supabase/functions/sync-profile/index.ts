@@ -1,10 +1,44 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { importX509, jwtVerify } from "https://esm.sh/jose@5.2.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const FIREBASE_PROJECT_ID = "billobattlehub";
+let cachedCerts: Record<string, string> | null = null;
+let certExpiry = 0;
+
+async function getGoogleCerts(): Promise<Record<string, string>> {
+  if (cachedCerts && Date.now() < certExpiry) return cachedCerts;
+  const res = await fetch(
+    "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+  );
+  cachedCerts = await res.json();
+  const maxAge = res.headers.get("cache-control")?.match(/max-age=(\d+)/)?.[1];
+  certExpiry = Date.now() + (maxAge ? parseInt(maxAge) * 1000 : 3600000);
+  return cachedCerts!;
+}
+
+async function verifyFirebaseToken(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) throw new Error("No token");
+  const token = authHeader.substring(7);
+  const [headerB64] = token.split(".");
+  const header = JSON.parse(atob(headerB64.replace(/-/g, "+").replace(/_/g, "/")));
+  const certs = await getGoogleCerts();
+  const cert = certs[header.kid];
+  if (!cert) throw new Error("Invalid key ID");
+  const key = await importX509(cert, "RS256");
+  const { payload } = await jwtVerify(token, key, {
+    issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+    audience: FIREBASE_PROJECT_ID,
+  });
+  if (!payload.sub) throw new Error("No subject");
+  return payload.sub;
+}
 
 interface FirebaseUser {
   uid: string;
@@ -18,25 +52,18 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Verify Firebase JWT token
+    const verifiedUid = await verifyFirebaseToken(req);
+
     const { firebaseUser, referralCode } = await req.json() as {
       firebaseUser: FirebaseUser;
       referralCode?: string;
     };
 
-    if (!firebaseUser?.uid) {
-      return new Response(
-        JSON.stringify({ error: "Firebase user data required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Validate UID format
-    if (typeof firebaseUser.uid !== "string" || firebaseUser.uid.length > 128 || !/^[a-zA-Z0-9]+$/.test(firebaseUser.uid)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Use verified UID, ignore client-provided UID
+    const uid = verifiedUid;
+    const email = firebaseUser?.email;
+    const displayName = firebaseUser?.displayName;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -47,11 +74,10 @@ Deno.serve(async (req) => {
     const { data: existingProfile } = await supabase
       .from("profiles")
       .select("*, wallets(*), daily_streaks(*)")
-      .eq("firebase_uid", firebaseUser.uid)
+      .eq("firebase_uid", uid)
       .single();
 
     if (existingProfile) {
-      // Check if banned
       if (existingProfile.is_banned) {
         return new Response(
           JSON.stringify({ error: "Account suspended" }),
@@ -79,7 +105,6 @@ Deno.serve(async (req) => {
           last_login_date: today,
         }).eq("profile_id", existingProfile.id);
 
-        // 7-day streak bonus
         if (newStreak === 7) {
           const wallet = existingProfile.wallets;
           if (wallet) {
@@ -117,13 +142,13 @@ Deno.serve(async (req) => {
       if (referrer) referrerId = referrer.id;
     }
 
-    const sanitizedEmail = firebaseUser.email?.slice(0, 255) || null;
-    const sanitizedName = firebaseUser.displayName?.slice(0, 100) || null;
+    const sanitizedEmail = email?.slice(0, 255) || null;
+    const sanitizedName = displayName?.slice(0, 100) || null;
 
     const { data: newProfile, error: insertError } = await supabase
       .from("profiles")
       .insert({
-        firebase_uid: firebaseUser.uid,
+        firebase_uid: uid,
         email: sanitizedEmail,
         username: sanitizedName,
         referred_by: referrerId,
@@ -192,10 +217,10 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    const msg = error instanceof Error ? error.message : "Internal server error";
+    const status = msg === "No token" || msg === "Invalid key ID" || msg === "No subject" ? 401 : 500;
+    if (status === 500) console.error("Error:", error);
+    return new Response(JSON.stringify({ error: status === 401 ? "Unauthorized" : "Internal server error" }),
+      { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

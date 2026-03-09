@@ -17,3 +17,12 @@ verify_jwt = false
 
 [functions.telegram-bot]
 verify_jwt = false
+
+[functions.join-tournament]
+verify_jwt = false
+
+[functions.create-deposit]
+verify_jwt = false
+
+[functions.create-withdrawal]
+verify_jwt = false

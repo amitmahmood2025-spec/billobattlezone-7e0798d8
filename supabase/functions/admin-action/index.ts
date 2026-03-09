@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { importX509, jwtVerify } from "https://esm.sh/jose@5.2.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,25 +7,52 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const FIREBASE_PROJECT_ID = "billobattlehub";
+let cachedCerts: Record<string, string> | null = null;
+let certExpiry = 0;
+
+async function getGoogleCerts(): Promise<Record<string, string>> {
+  if (cachedCerts && Date.now() < certExpiry) return cachedCerts;
+  const res = await fetch(
+    "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+  );
+  cachedCerts = await res.json();
+  const maxAge = res.headers.get("cache-control")?.match(/max-age=(\d+)/)?.[1];
+  certExpiry = Date.now() + (maxAge ? parseInt(maxAge) * 1000 : 3600000);
+  return cachedCerts!;
+}
+
+async function verifyFirebaseToken(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) throw new Error("No token");
+  const token = authHeader.substring(7);
+  const [headerB64] = token.split(".");
+  const header = JSON.parse(atob(headerB64.replace(/-/g, "+").replace(/_/g, "/")));
+  const certs = await getGoogleCerts();
+  const cert = certs[header.kid];
+  if (!cert) throw new Error("Invalid key ID");
+  const key = await importX509(cert, "RS256");
+  const { payload } = await jwtVerify(token, key, {
+    issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+    audience: FIREBASE_PROJECT_ID,
+  });
+  if (!payload.sub) throw new Error("No subject");
+  return payload.sub;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { firebaseUid, action, data } = await req.json();
+    const firebaseUid = await verifyFirebaseToken(req);
+    const { action, data } = await req.json();
 
-    if (!firebaseUid || !action) {
+    if (!action) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
+        JSON.stringify({ error: "Missing action" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (typeof firebaseUid !== "string" || firebaseUid.length > 128 || !/^[a-zA-Z0-9]+$/.test(firebaseUid)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -97,14 +125,27 @@ Deno.serve(async (req) => {
       // ========== ADMIN MANAGEMENT ==========
       case "add_admin": {
         const { emailOrUsername } = data;
-        if (!emailOrUsername) {
+        if (!emailOrUsername || typeof emailOrUsername !== "string") {
           return new Response(JSON.stringify({ error: "Email or username required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        const { data: targetProfile } = await supabase
-          .from("profiles").select("id")
-          .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
-          .single();
+        // Sanitize input to prevent SQL injection via .or()
+        const sanitizedAdmin = emailOrUsername.trim().slice(0, 255);
+        if (!/^[a-zA-Z0-9@._\-+]+$/.test(sanitizedAdmin)) {
+          return new Response(JSON.stringify({ error: "Invalid email/username format" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        // Use separate queries instead of .or() to prevent injection
+        let targetProfile;
+        const { data: byEmail } = await supabase
+          .from("profiles").select("id").eq("email", sanitizedAdmin).maybeSingle();
+        if (byEmail) {
+          targetProfile = byEmail;
+        } else {
+          const { data: byUsername } = await supabase
+            .from("profiles").select("id").eq("username", sanitizedAdmin).maybeSingle();
+          targetProfile = byUsername;
+        }
 
         if (!targetProfile) {
           return new Response(JSON.stringify({ error: "User not found" }),
@@ -137,14 +178,25 @@ Deno.serve(async (req) => {
       // ========== MODERATOR MANAGEMENT ==========
       case "add_moderator": {
         const { emailOrUsername } = data;
-        if (!emailOrUsername) {
+        if (!emailOrUsername || typeof emailOrUsername !== "string") {
           return new Response(JSON.stringify({ error: "Email or username required" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        const { data: modProfile } = await supabase
-          .from("profiles").select("id")
-          .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
-          .single();
+        const sanitizedMod = emailOrUsername.trim().slice(0, 255);
+        if (!/^[a-zA-Z0-9@._\-+]+$/.test(sanitizedMod)) {
+          return new Response(JSON.stringify({ error: "Invalid email/username format" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        let modProfile;
+        const { data: modByEmail } = await supabase
+          .from("profiles").select("id").eq("email", sanitizedMod).maybeSingle();
+        if (modByEmail) {
+          modProfile = modByEmail;
+        } else {
+          const { data: modByUsername } = await supabase
+            .from("profiles").select("id").eq("username", sanitizedMod).maybeSingle();
+          modProfile = modByUsername;
+        }
         if (!modProfile) {
           return new Response(JSON.stringify({ error: "User not found" }),
             { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -507,8 +559,10 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const msg = error instanceof Error ? error.message : "Internal server error";
+    const status = msg === "No token" || msg === "Invalid key ID" || msg === "No subject" ? 401 : 500;
+    if (status === 500) console.error("Error:", error);
+    return new Response(JSON.stringify({ error: status === 401 ? "Unauthorized" : "Internal server error" }),
+      { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

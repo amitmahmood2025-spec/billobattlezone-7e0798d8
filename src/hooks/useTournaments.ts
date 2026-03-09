@@ -90,83 +90,33 @@ export const useTournaments = (
       return;
     }
 
-    const balance = payWithCredits ? credits : cash;
-    if (balance < tournament.entry_fee) {
-      toast.error(
-        `Insufficient ${payWithCredits ? "credits" : "cash"} balance`
-      );
-      return;
-    }
-
-    if (
-      tournament.max_participants &&
-      tournament.current_participants >= tournament.max_participants
-    ) {
-      toast.error("Tournament is full");
-      return;
-    }
-
     try {
       setJoining(tournament.id);
 
-      // Deduct from wallet
-      const { data: wallet } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("profile_id", profileId)
-        .single();
+      const { getAuthHeaders } = await import("@/lib/authHeaders");
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/join-tournament`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            tournamentId: tournament.id,
+            payWithCredits,
+            gameId,
+            gameName,
+          }),
+        }
+      );
 
-      if (!wallet) {
-        toast.error("Wallet not found");
-        return;
-      }
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to join");
 
-      const walletData = wallet as { credits: number; cash: number };
-      const updateField = payWithCredits ? "credits" : "cash";
-      const currentBalance = payWithCredits
-        ? walletData.credits
-        : walletData.cash;
-
-      await supabase
-        .from("wallets")
-        .update({ [updateField]: currentBalance - tournament.entry_fee })
-        .eq("profile_id", profileId);
-
-      // Create entry
-      await supabase.from("tournament_entries").insert({
-        tournament_id: tournament.id,
-        profile_id: profileId,
-        fee_paid: tournament.entry_fee,
-        fee_type: payWithCredits ? "credits" : "cash",
-        game_id: gameId,
-        game_name: gameName,
-      });
-
-      // Update participant count
-      await supabase
-        .from("tournaments")
-        .update({
-          current_participants: tournament.current_participants + 1,
-        })
-        .eq("id", tournament.id);
-
-      // Record transaction
-      await supabase.from("transactions").insert({
-        profile_id: profileId,
-        type: payWithCredits ? "match_entry_credit" : "match_entry_cash",
-        amount: -tournament.entry_fee,
-        description: `Tournament entry: ${tournament.title}`,
-        reference_id: tournament.id,
-      });
-
-      toast.success("Joined tournament!", {
-        description: tournament.title,
-      });
-
+      toast.success("Joined tournament!", { description: tournament.title });
       await fetchData();
     } catch (err) {
-      console.error("Error joining tournament:", err);
-      toast.error("Failed to join tournament");
+      const msg = err instanceof Error ? err.message : "Failed to join tournament";
+      toast.error(msg);
     } finally {
       setJoining(null);
     }

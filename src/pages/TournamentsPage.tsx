@@ -299,15 +299,14 @@ const TournamentsPage = () => {
     if (!user) return;
     setRoomLoading(true);
     try {
+      const { getAuthHeaders } = await import("@/lib/authHeaders");
+      const headers = await getAuthHeaders();
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-room-info`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ firebaseUid: user.uid, tournamentId }),
+          headers,
+          body: JSON.stringify({ tournamentId }),
         }
       );
       const data = await res.json();
