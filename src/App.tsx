@@ -12,6 +12,7 @@ import WithdrawPage from "@/pages/WithdrawPage";
 import AdminPanel from "@/pages/AdminPanel";
 import UserProfile from "@/pages/UserProfile";
 import ResultsPage from "@/pages/Results";
+import ReferralsPage from "@/pages/ReferralsPage";
 import NotFound from "@/pages/NotFound";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import SupportWidget from "@/components/SupportWidget";
