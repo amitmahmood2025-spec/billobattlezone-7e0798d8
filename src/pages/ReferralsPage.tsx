@@ -293,6 +293,17 @@ const ReferralsPage = () => {
             </motion.div>
           )}
 
+          {activeTab === "leaderboard" && (
+            <motion.div
+              key="leaderboard"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              <ReferralLeaderboard />
+            </motion.div>
+          )}
+
           {activeTab === "friends" && (
             <motion.div
               key="friends"
