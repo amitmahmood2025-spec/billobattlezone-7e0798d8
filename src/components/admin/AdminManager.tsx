@@ -56,15 +56,14 @@ const AdminManager = () => {
   }, [fetchAdmins]);
 
   const callAdmin = async (action: string, data: Record<string, unknown>) => {
+    const { getAuthHeaders } = await import("@/lib/authHeaders");
+    const headers = await getAuthHeaders();
     const res = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-action`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ firebaseUid: user?.uid, action, data }),
+        headers,
+        body: JSON.stringify({ action, data }),
       }
     );
     const result = await res.json();
