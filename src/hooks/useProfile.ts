@@ -75,6 +75,7 @@ export const useProfile = () => {
               email: user.email,
               displayName: user.displayName,
             },
+            referralCode: localStorage.getItem("bbz_referral_code") || undefined,
           }),
         }
       );
