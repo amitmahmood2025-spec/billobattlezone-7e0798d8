@@ -66,24 +66,22 @@ export const useDeposits = (profileId: string | undefined) => {
   ) => {
     if (!profileId) return;
 
-    const setting = paymentSettings.find((s) => s.payment_method === method);
-    if (setting && amount < setting.min_deposit) {
-      toast.error(`Minimum deposit is ৳${setting.min_deposit}`);
-      return;
-    }
-
     try {
       setSubmitting(true);
 
-      const { error } = await supabase.from("deposits").insert({
-        profile_id: profileId,
-        amount,
-        payment_method: method,
-        transaction_id: transactionId,
-        status: "pending",
-      });
+      const { getAuthHeaders } = await import("@/lib/authHeaders");
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-deposit`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ paymentMethod: method, amount, transactionId }),
+        }
+      );
 
-      if (error) throw error;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed");
 
       toast.success("Deposit request submitted!", {
         description: "Your request is pending admin approval.",
@@ -91,8 +89,8 @@ export const useDeposits = (profileId: string | undefined) => {
 
       await fetchData();
     } catch (err) {
-      console.error("Error creating deposit:", err);
-      toast.error("Failed to submit deposit request");
+      const msg = err instanceof Error ? err.message : "Failed to submit deposit request";
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

@@ -68,41 +68,19 @@ export const useWithdrawals = (
     try {
       setSubmitting(true);
 
-      // Deduct from wallet first
-      const { data: wallet } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("profile_id", profileId)
-        .single();
+      const { getAuthHeaders } = await import("@/lib/authHeaders");
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-withdrawal`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ paymentMethod: method, amount, accountNumber }),
+        }
+      );
 
-      if (!wallet || (wallet as { cash: number }).cash < amount) {
-        toast.error("Insufficient balance");
-        return;
-      }
-
-      await supabase
-        .from("wallets")
-        .update({ cash: (wallet as { cash: number }).cash - amount })
-        .eq("profile_id", profileId);
-
-      // Create withdrawal request
-      const { error } = await supabase.from("withdrawals").insert({
-        profile_id: profileId,
-        amount,
-        payment_method: method,
-        account_number: accountNumber,
-        status: "pending",
-      });
-
-      if (error) throw error;
-
-      // Record transaction
-      await supabase.from("transactions").insert({
-        profile_id: profileId,
-        type: "cash_withdraw",
-        amount: -amount,
-        description: `Withdrawal to ${method}: ${accountNumber}`,
-      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed");
 
       toast.success("Withdrawal request submitted!", {
         description: "Processing time: 24-48 hours",
@@ -110,8 +88,8 @@ export const useWithdrawals = (
 
       await fetchWithdrawals();
     } catch (err) {
-      console.error("Error creating withdrawal:", err);
-      toast.error("Failed to submit withdrawal request");
+      const msg = err instanceof Error ? err.message : "Failed to submit withdrawal request";
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
