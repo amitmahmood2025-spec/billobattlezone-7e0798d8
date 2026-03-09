@@ -12,6 +12,7 @@ import WithdrawPage from "@/pages/WithdrawPage";
 import AdminPanel from "@/pages/AdminPanel";
 import UserProfile from "@/pages/UserProfile";
 import ResultsPage from "@/pages/Results";
+import ReferralsPage from "@/pages/ReferralsPage";
 import NotFound from "@/pages/NotFound";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import SupportWidget from "@/components/SupportWidget";
@@ -31,6 +32,7 @@ const App = () => {
             <Route path="/dashboard/withdraw" element={<ProtectedRoute><WithdrawPage /></ProtectedRoute>} />
             <Route path="/dashboard/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
             <Route path="/dashboard/results" element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
+            <Route path="/dashboard/referrals" element={<ProtectedRoute><ReferralsPage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminPanel /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
