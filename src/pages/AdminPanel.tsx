@@ -56,9 +56,9 @@ const AdminPanel = () => {
   const [paymentSettings, setPaymentSettings] = useState<Record<string, { number: string; name: string }>>({});
 
   useEffect(() => {
-    if (isAdmin) fetchAdminData();
+    if (isAdmin || isModerator) fetchAdminData();
     else setLoading(false);
-  }, [isAdmin]);
+  }, [isAdmin, isModerator]);
 
   const fetchAdminData = async () => {
     try {
