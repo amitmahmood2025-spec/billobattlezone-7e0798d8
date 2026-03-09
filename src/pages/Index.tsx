@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
@@ -13,8 +13,21 @@ import { Loader2 } from "lucide-react";
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+
+  // Capture referral code from URL
+  const refCode = searchParams.get("ref");
+  useEffect(() => {
+    if (refCode) {
+      localStorage.setItem("bbz_referral_code", refCode.toUpperCase());
+      // Auto-open register modal for referred users
+      if (!user && !loading) {
+        setRegisterOpen(true);
+      }
+    }
+  }, [refCode, user, loading]);
 
   useEffect(() => {
     if (!loading && user) {
