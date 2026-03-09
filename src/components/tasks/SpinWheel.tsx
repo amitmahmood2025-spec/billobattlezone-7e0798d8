@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
+import { getAuthHeaders } from "@/lib/authHeaders";
 import { Button } from "@/components/ui/button";
 import { X, Loader2, Clock, Zap, Gift, ChevronRight, Trophy, Star, Sparkles } from "lucide-react";
 import { toast } from "sonner";
