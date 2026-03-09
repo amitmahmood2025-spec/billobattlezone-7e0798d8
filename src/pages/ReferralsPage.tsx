@@ -2,9 +2,10 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import SEO from "@/components/SEO";
+import ReferralLeaderboard from "@/components/referrals/ReferralLeaderboard";
 import { useProfile } from "@/hooks/useProfile";
 import { useReferrals } from "@/hooks/useReferrals";
-import { Loader2, Copy, Check, Users, Gift, TrendingUp, Crown, Share2, MessageCircle, Send, ChevronRight, Sparkles } from "lucide-react";
+import { Loader2, Copy, Check, Users, Gift, TrendingUp, Crown, Share2, MessageCircle, Send, ChevronRight, Sparkles, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
