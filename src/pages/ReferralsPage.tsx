@@ -13,7 +13,7 @@ const ReferralsPage = () => {
   const { profile, wallet, loading: profileLoading } = useProfile();
   const { referrals, stats, loading: referralsLoading } = useReferrals(profile?.id);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "friends" | "rewards">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "friends" | "rewards" | "leaderboard">("overview");
 
   const loading = profileLoading || referralsLoading;
 
