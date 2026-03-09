@@ -129,7 +129,7 @@ const AdminPanel = () => {
     });
   };
 
-  if (!isAdmin) {
+  if (!isAdmin && !isModerator) {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-8">
         <DashboardNav />
