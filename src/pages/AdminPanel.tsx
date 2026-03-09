@@ -5,7 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import TournamentManager from "@/components/admin/TournamentManager";
-import AdminManager from "@/components/admin/AdminManager";
+import ModeratorManager from "@/components/admin/ModeratorManager";
 import TaskManager from "@/components/admin/TaskManager";
 import TelegramTaskManager from "@/components/admin/TelegramTaskManager";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ interface AdminStats {
 
 const AdminPanel = () => {
   const { user } = useAuth();
-  const { isAdmin } = useProfile();
+  const { isAdmin, isModerator } = useProfile();
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [stats, setStats] = useState<AdminStats>({
@@ -56,9 +56,9 @@ const AdminPanel = () => {
   const [paymentSettings, setPaymentSettings] = useState<Record<string, { number: string; name: string }>>({});
 
   useEffect(() => {
-    if (isAdmin) fetchAdminData();
+    if (isAdmin || isModerator) fetchAdminData();
     else setLoading(false);
-  }, [isAdmin]);
+  }, [isAdmin, isModerator]);
 
   const fetchAdminData = async () => {
     try {
@@ -129,7 +129,7 @@ const AdminPanel = () => {
     });
   };
 
-  if (!isAdmin) {
+  if (!isAdmin && !isModerator) {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-8">
         <DashboardNav />
@@ -197,7 +197,7 @@ const AdminPanel = () => {
             <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="telegram" className="flex items-center gap-1"><Bot className="w-3 h-3" /> Telegram</TabsTrigger>
-            <TabsTrigger value="admins">Admins</TabsTrigger>
+            <TabsTrigger value="admins">Staff</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -260,7 +260,7 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="admins" className="mt-4">
-            <AdminManager />
+            <ModeratorManager />
           </TabsContent>
 
           <TabsContent value="telegram" className="mt-4">

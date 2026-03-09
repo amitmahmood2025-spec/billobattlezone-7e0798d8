@@ -36,6 +36,7 @@ export interface ProfileData {
   wallet: Wallet | null;
   streak: DailyStreak | null;
   isAdmin: boolean;
+  isModerator: boolean;
 }
 
 export const useProfile = () => {
@@ -45,13 +46,14 @@ export const useProfile = () => {
     wallet: null,
     streak: null,
     isAdmin: false,
+    isModerator: false,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const syncProfile = useCallback(async () => {
     if (!user) {
-      setData({ profile: null, wallet: null, streak: null, isAdmin: false });
+      setData({ profile: null, wallet: null, streak: null, isAdmin: false, isModerator: false });
       setLoading(false);
       return;
     }
@@ -88,13 +90,15 @@ export const useProfile = () => {
 
       const profileData = result.profile;
 
-      // Check if user is admin
-      const { data: adminRole } = await supabase
+      // Check user roles
+      const { data: userRoles } = await supabase
         .from("user_roles")
         .select("*")
         .eq("user_id", profileData.id)
-        .eq("role", "admin")
-        .maybeSingle();
+        .in("role", ["admin", "moderator"]);
+
+      const hasAdmin = (userRoles || []).some((r) => r.role === "admin");
+      const hasMod = (userRoles || []).some((r) => r.role === "moderator");
 
       // Clear referral code after successful sync
       localStorage.removeItem("bbz_referral_code");
@@ -103,7 +107,8 @@ export const useProfile = () => {
         profile: profileData,
         wallet: profileData.wallets,
         streak: profileData.daily_streaks,
-        isAdmin: !!adminRole,
+        isAdmin: hasAdmin,
+        isModerator: hasMod,
       });
     } catch (err) {
       console.error("Error syncing profile:", err);

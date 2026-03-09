@@ -2,9 +2,10 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import SEO from "@/components/SEO";
+import ReferralLeaderboard from "@/components/referrals/ReferralLeaderboard";
 import { useProfile } from "@/hooks/useProfile";
 import { useReferrals } from "@/hooks/useReferrals";
-import { Loader2, Copy, Check, Users, Gift, TrendingUp, Crown, Share2, MessageCircle, Send, ChevronRight, Sparkles } from "lucide-react";
+import { Loader2, Copy, Check, Users, Gift, TrendingUp, Crown, Share2, MessageCircle, Send, ChevronRight, Sparkles, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -12,7 +13,7 @@ const ReferralsPage = () => {
   const { profile, wallet, loading: profileLoading } = useProfile();
   const { referrals, stats, loading: referralsLoading } = useReferrals(profile?.id);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "friends" | "rewards">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "friends" | "rewards" | "leaderboard">("overview");
 
   const loading = profileLoading || referralsLoading;
 
@@ -205,7 +206,7 @@ const ReferralsPage = () => {
 
         {/* Tab Navigation */}
         <div className="flex gap-2">
-          {(["overview", "friends", "rewards"] as const).map((tab) => (
+          {(["overview", "leaderboard", "friends", "rewards"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -215,7 +216,7 @@ const ReferralsPage = () => {
                   : "glass text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tab === "overview" ? "How It Works" : tab}
+              {tab === "overview" ? "How It Works" : tab === "leaderboard" ? "🏆 Top 10" : tab}
             </button>
           ))}
         </div>
@@ -289,6 +290,17 @@ const ReferralsPage = () => {
                   ))}
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === "leaderboard" && (
+            <motion.div
+              key="leaderboard"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              <ReferralLeaderboard />
             </motion.div>
           )}
 

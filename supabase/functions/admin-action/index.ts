@@ -46,12 +46,49 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { data: adminRole } = await supabase
-      .from("user_roles").select("*").eq("user_id", profile.id).eq("role", "admin").single();
+    const { data: userRoles } = await supabase
+      .from("user_roles").select("*").eq("user_id", profile.id).in("role", ["admin", "moderator"]);
 
-    if (!adminRole) {
+    const isAdmin = (userRoles || []).some((r: any) => r.role === "admin");
+    const isModerator = (userRoles || []).some((r: any) => r.role === "moderator");
+
+    if (!isAdmin && !isModerator) {
+      return new Response(JSON.stringify({ error: "Admin/Moderator access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Check moderator permissions for non-admin users
+    const checkModPermission = async (permission: string) => {
+      if (isAdmin) return true;
+      const { data: perm } = await supabase
+        .from("role_permissions").select("id")
+        .eq("user_id", profile.id).eq("permission", permission).maybeSingle();
+      return !!perm;
+    };
+
+    // Actions that require admin-only
+    const adminOnlyActions = ["add_admin", "remove_admin", "add_moderator", "remove_moderator", "toggle_permission", "ban_user"];
+    if (!isAdmin && adminOnlyActions.includes(action)) {
       return new Response(JSON.stringify({ error: "Admin access required" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Permission mapping for moderator actions
+    const actionPermissionMap: Record<string, string> = {
+      approve_deposit: "manage_deposits", reject_deposit: "manage_deposits",
+      approve_withdrawal: "manage_withdrawals", reject_withdrawal: "manage_withdrawals",
+      create_tournament: "manage_tournaments", update_tournament: "manage_tournaments", delete_tournament: "manage_tournaments",
+      get_tournament_entries: "manage_tournaments", update_placement: "manage_tournaments",
+      create_task: "manage_tasks", update_task: "manage_tasks", delete_task: "manage_tasks",
+      update_payment_settings: "manage_settings",
+    };
+
+    if (!isAdmin && actionPermissionMap[action]) {
+      const hasPermission = await checkModPermission(actionPermissionMap[action]);
+      if (!hasPermission) {
+        return new Response(JSON.stringify({ error: `Permission denied: ${actionPermissionMap[action]}` }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     let result;
@@ -94,6 +131,61 @@ Deno.serve(async (req) => {
         }
         await supabase.from("user_roles").delete().eq("user_id", targetUserId).eq("role", "admin");
         result = { success: true, message: "Admin removed" };
+        break;
+      }
+
+      // ========== MODERATOR MANAGEMENT ==========
+      case "add_moderator": {
+        const { emailOrUsername } = data;
+        if (!emailOrUsername) {
+          return new Response(JSON.stringify({ error: "Email or username required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const { data: modProfile } = await supabase
+          .from("profiles").select("id")
+          .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
+          .single();
+        if (!modProfile) {
+          return new Response(JSON.stringify({ error: "User not found" }),
+            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        await supabase.from("user_roles").upsert(
+          { user_id: modProfile.id, role: "moderator" },
+          { onConflict: "user_id,role" }
+        );
+        result = { success: true, message: "Moderator added" };
+        break;
+      }
+
+      case "remove_moderator": {
+        const { targetUserId } = data;
+        if (!targetUserId) {
+          return new Response(JSON.stringify({ error: "Target user ID required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        // Remove role and all permissions
+        await supabase.from("role_permissions").delete().eq("user_id", targetUserId);
+        await supabase.from("user_roles").delete().eq("user_id", targetUserId).eq("role", "moderator");
+        result = { success: true, message: "Moderator removed" };
+        break;
+      }
+
+      case "toggle_permission": {
+        const { targetUserId, permission, enabled } = data;
+        if (!targetUserId || !permission) {
+          return new Response(JSON.stringify({ error: "Missing fields" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        if (enabled) {
+          await supabase.from("role_permissions").upsert(
+            { user_id: targetUserId, permission, granted_by: profile.id },
+            { onConflict: "user_id,permission" }
+          );
+        } else {
+          await supabase.from("role_permissions").delete()
+            .eq("user_id", targetUserId).eq("permission", permission);
+        }
+        result = { success: true, message: `Permission ${enabled ? "granted" : "revoked"}` };
         break;
       }
 
