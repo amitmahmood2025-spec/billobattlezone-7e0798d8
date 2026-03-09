@@ -53,7 +53,7 @@ export const useProfile = () => {
 
   const syncProfile = useCallback(async () => {
     if (!user) {
-      setData({ profile: null, wallet: null, streak: null, isAdmin: false });
+      setData({ profile: null, wallet: null, streak: null, isAdmin: false, isModerator: false });
       setLoading(false);
       return;
     }
