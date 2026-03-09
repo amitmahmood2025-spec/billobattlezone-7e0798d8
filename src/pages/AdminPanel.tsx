@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthHeaders } from "@/lib/authHeaders";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import TournamentManager from "@/components/admin/TournamentManager";
 import ModeratorManager from "@/components/admin/ModeratorManager";
