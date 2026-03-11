@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         display: ['Orbitron', 'sans-serif'],
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter', 'Space Grotesk', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -53,9 +53,11 @@ export default {
         },
         neon: {
           DEFAULT: "hsl(var(--neon))",
+          glow: "hsl(var(--neon-glow))",
           green: "hsl(var(--neon-green))",
           purple: "hsl(var(--neon-purple))",
           pink: "hsl(var(--neon-pink))",
+          orange: "hsl(var(--neon-orange))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -88,11 +90,27 @@ export default {
         },
         "float": {
           "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-10px)" },
+          "50%": { transform: "translateY(-8px)" },
         },
         "glow": {
-          "0%, 100%": { boxShadow: "0 0 15px hsla(var(--neon) / 0.3)" },
-          "50%": { boxShadow: "0 0 30px hsla(var(--neon) / 0.6)" },
+          "0%, 100%": { boxShadow: "0 0 12px hsla(var(--neon) / 0.25)" },
+          "50%": { boxShadow: "0 0 28px hsla(var(--neon) / 0.5)" },
+        },
+        "spin-slow": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        "icon-bounce": {
+          "0%, 100%": { transform: "translateY(0) scale(1)" },
+          "50%": { transform: "translateY(-4px) scale(1.1)" },
+        },
+        "slide-up": {
+          from: { opacity: "0", transform: "translateY(16px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
         },
       },
       animation: {
@@ -100,7 +118,11 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-neon": "pulse-neon 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
-        "glow": "glow 2s ease-in-out infinite",
+        "glow": "glow 2.5s ease-in-out infinite",
+        "spin-slow": "spin-slow 8s linear infinite",
+        "icon-bounce": "icon-bounce 2s ease-in-out infinite",
+        "slide-up": "slide-up 0.4s ease-out",
+        "shimmer": "shimmer 2s linear infinite",
       },
     },
   },
