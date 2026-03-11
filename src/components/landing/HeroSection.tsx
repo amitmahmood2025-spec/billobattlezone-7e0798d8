@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Zap, Gamepad2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Zap, Gamepad2, ChevronLeft, ChevronRight, Shield, Users, Trophy } from "lucide-react";
 
 import freefireBanner from "@/assets/games/freefire-banner.jpg";
 import freefireAction from "@/assets/games/freefire-action.jpg";
@@ -53,35 +53,45 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/30" />
           <div className="absolute inset-0 bg-gradient-to-r from-background/50 via-transparent to-background/50" />
+          {/* Scanline overlay for premium feel */}
+          <div className="absolute inset-0 scanlines opacity-30" />
         </motion.div>
       </AnimatePresence>
 
+      {/* Ambient neon orbs */}
+      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-[100px] animate-float" />
+      <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-neon-purple/5 rounded-full blur-[80px] animate-float" style={{ animationDelay: "1.5s" }} />
+
       {/* Slide indicators */}
-      <div className="absolute bottom-32 md:bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+      <div className="absolute bottom-32 md:bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-2">
         {slides.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrent(i)}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === current ? "w-8 bg-primary neon-glow" : "w-3 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              i === current ? "w-10 bg-primary shadow-neon" : "w-3 bg-muted-foreground/20 hover:bg-muted-foreground/40"
             }`}
           />
         ))}
       </div>
 
       {/* Nav arrows */}
-      <button
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
         onClick={() => setCurrent((prev) => (prev - 1 + slides.length) % slides.length)}
-        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 glass rounded-full p-2 hover:neon-glow transition-all"
+        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 glass-card rounded-full p-2.5 hover:neon-glow transition-all"
       >
         <ChevronLeft className="w-5 h-5 text-foreground" />
-      </button>
-      <button
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
         onClick={() => setCurrent((prev) => (prev + 1) % slides.length)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 glass rounded-full p-2 hover:neon-glow transition-all"
+        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 glass-card rounded-full p-2.5 hover:neon-glow transition-all"
       >
         <ChevronRight className="w-5 h-5 text-foreground" />
-      </button>
+      </motion.button>
 
       {/* Content */}
       <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
@@ -90,9 +100,9 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass neon-border mb-8">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm text-primary font-medium">Free Credits • Real Tournaments</span>
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass-card neon-border mb-8">
+            <Zap className="w-4 h-4 text-primary icon-glow" />
+            <span className="text-sm text-primary font-semibold tracking-wide">Free Credits • Real Tournaments</span>
           </div>
         </motion.div>
 
@@ -103,7 +113,7 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
           className="text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight mb-4"
         >
           <span className="text-foreground">BILLO</span>{" "}
-          <span className="text-gradient-neon">BATTLE</span>
+          <span className="text-gradient-premium">BATTLE</span>
           <br />
           <span className="text-foreground">ZONE</span>
         </motion.h1>
@@ -117,7 +127,7 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
             exit={{ opacity: 0, y: -10 }}
             className="mb-6"
           >
-            <span className="text-xl md:text-2xl font-display font-bold text-primary neon-text">
+            <span className="text-xl md:text-2xl font-display font-bold text-primary neon-text-strong">
               {slides[current].title}
             </span>
             <span className="text-muted-foreground ml-2">— {slides[current].subtitle}</span>
@@ -143,7 +153,7 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
           <Button
             onClick={onRegister}
             size="lg"
-            className="gradient-neon text-primary-foreground font-display font-bold text-lg px-8 py-6 neon-glow hover:scale-105 transition-transform"
+            className="gradient-premium text-primary-foreground font-display font-bold text-lg px-8 py-6 shadow-neon-lg hover:scale-105 transition-transform"
           >
             <Gamepad2 className="w-5 h-5 mr-2" />
             Start Playing Free
@@ -152,7 +162,7 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
             onClick={onLogin}
             variant="outline"
             size="lg"
-            className="border-primary/30 text-primary hover:bg-primary/10 font-display font-bold text-lg px-8 py-6"
+            className="border-primary/30 text-primary hover:bg-primary/10 font-display font-bold text-lg px-8 py-6 hover:neon-glow transition-all"
           >
             Login
           </Button>
@@ -163,17 +173,22 @@ const HeroSection = ({ onLogin, onRegister }: HeroSectionProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.6 }}
-          className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto"
+          className="mt-16 grid grid-cols-3 gap-6 max-w-lg mx-auto"
         >
           {[
-            { value: "10K+", label: "Players" },
-            { value: "500+", label: "Tournaments" },
-            { value: "৳50L+", label: "Won" },
+            { value: "10K+", label: "Players", icon: Users },
+            { value: "500+", label: "Tournaments", icon: Trophy },
+            { value: "৳50L+", label: "Won", icon: Shield },
           ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-2xl md:text-3xl font-display font-bold text-primary neon-text">{stat.value}</div>
-              <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
-            </div>
+            <motion.div
+              key={stat.label}
+              whileHover={{ scale: 1.05 }}
+              className="text-center glass-card rounded-xl p-3"
+            >
+              <stat.icon className="w-4 h-4 text-primary mx-auto mb-1 icon-glow" />
+              <div className="text-xl md:text-2xl font-display font-bold text-primary neon-text">{stat.value}</div>
+              <div className="text-xs text-muted-foreground mt-0.5 font-medium">{stat.label}</div>
+            </motion.div>
           ))}
         </motion.div>
       </div>
