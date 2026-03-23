@@ -27,7 +27,7 @@ const AdSlot = ({ slot, format = "auto", className = "" }: AdSlotProps) => {
         minHeight: format === "horizontal" ? 90 : format === "rectangle" ? 250 : 100,
       }}
     >
-      {<script>
+      <script>
   atOptions = {
     'key' : 'ee0bae7e8602b61974fc88c1777097ec',
     'format' : 'iframe',
@@ -36,7 +36,7 @@ const AdSlot = ({ slot, format = "auto", className = "" }: AdSlotProps) => {
     'params' : {}
   };
 </script>
-<script src="https://www.highperformanceformat.com/ee0bae7e8602b61974fc88c1777097ec/invoke.js"></script>}
+<script src="https://www.highperformanceformat.com/ee0bae7e8602b61974fc88c1777097ec/invoke.js"></script>
       <p className="text-xs text-muted-foreground/50 select-none">AD — {slot}</p>
     </div>
   );
