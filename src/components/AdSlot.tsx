@@ -1,43 +1,63 @@
+"use client";
+import { useEffect, useRef } from "react";
+
 interface AdSlotProps {
-  slot: string;
+  slot: string; // Adsterra theke pawa 'key' ekhane boshaben
   format?: "auto" | "rectangle" | "horizontal" | "vertical";
   className?: string;
 }
 
-/**
- * Ad placeholder component. Replace with actual ad network scripts.
- * 
- * Usage:
- *   <AdSlot slot="top-banner" format="horizontal" />
- *   <AdSlot slot="sidebar" format="rectangle" />
- * 
- * To implement real ads:
- * 1. Google AdSense: Add script in index.html, use data-ad-client/data-ad-slot
- * 2. AdSterra: Replace with their script tag
- * 3. Monetag: Replace with their script tag
- * 4. Custom: Admin can upload banners via admin panel
- */
 const AdSlot = ({ slot, format = "auto", className = "" }: AdSlotProps) => {
-  return (
-    <div
-      className={`w-full flex items-center justify-center bg-muted/20 rounded-lg border border-dashed border-border/50 overflow-hidden ${className}`}
-      data-ad-slot={slot}
-      data-ad-format={format}
-      style={{
-        minHeight: format === "horizontal" ? 90 : format === "rectangle" ? 250 : 100,
-      }}
-    >
-      <script>
-  atOptions = {
-    'key' : 'ee0bae7e8602b61974fc88c1777097ec',
-    'format' : 'iframe',
-    'height' : 600,
-    'width' : 160,
-    'params' : {}
+  const adRef = useRef<HTMLDivElement>(null);
+
+  // Format onujayi height ebong width set kora
+  const getDimensions = () => {
+    switch (format) {
+      case "horizontal": return { w: 728, h: 90 };
+      case "rectangle": return { w: 300, h: 250 };
+      case "vertical": return { w: 160, h: 600 };
+      default: return { w: 160, h: 600 }; // Default format
+    }
   };
-</script>
-<script src="https://www.highperformanceformat.com/ee0bae7e8602b61974fc88c1777097ec/invoke.js"></script>
-      <p className="text-xs text-muted-foreground/50 select-none">AD — {slot}</p>
+
+  const { w, h } = getDimensions();
+
+  useEffect(() => {
+    // Prottekbar slot change hole jeno purano script gulo clear hoye jay
+    if (adRef.current) {
+      adRef.current.innerHTML = ""; 
+
+      const configScript = document.createElement("script");
+      configScript.type = "text/javascript";
+      configScript.innerHTML = `
+        atOptions = {
+          'key' : '${slot}',
+          'format' : 'iframe',
+          'height' : ${h},
+          'width' : ${w},
+          'params' : {}
+        };
+      `;
+
+      const invokeScript = document.createElement("script");
+      invokeScript.type = "text/javascript";
+      invokeScript.src = `//://www.highperformanceformat.com{slot}/invoke.js`;
+
+      adRef.current.appendChild(configScript);
+      adRef.current.appendChild(invokeScript);
+    }
+  }, [slot, format, h, w]); // Slot ba format change hole script reload hobe
+
+  return (
+    <div className={`w-full flex flex-col items-center justify-center gap-2 ${className}`}>
+      <div
+        ref={adRef}
+        className="bg-muted/10 rounded-lg border border-dashed border-border/50 overflow-hidden"
+        style={{ minHeight: `${h}px`, minWidth: `${w}px` }}
+      />
+      <p className="text-[10px] text-muted-foreground/30 select-none uppercase tracking-tighter">
+        Advertisement — {format}
+      </p>
     </div>
   );
 };
