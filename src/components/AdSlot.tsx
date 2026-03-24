@@ -3,58 +3,50 @@ import { useEffect, useRef } from "react";
 
 interface AdSlotProps {
   slot: string; ee0bae7e8602b61974fc88c1777097ec
-  format?: "horizontal" | "vertical" | "rectangle";
+  format?: "auto" | "rectangle" | "horizontal" | "vertical";
   className?: string;
 }
 
-const AdSlot = ({ slot, format = "vertical", className = "" }: AdSlotProps) => {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  // Format onujayi dimensions set kora
-  const getDimensions = () => {
-    switch (format) {
-      case "horizontal": return { w: 728, h: 90 };
-      case "rectangle": return { w: 300, h: 250 };
-      default: return { w: 160, h: 600 }; // Vertical
-    }
-  };
-
-  const { w, h } = getDimensions();
+const AdSlot = ({ slot, format = "auto", className = "" }: AdSlotProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (iframeRef.current) {
-      const adScript = `
-        <html>
-          <body style="margin:0; padding:0; display:flex; justify-content:center; align-items:center;">
-            <script type="text/javascript">
-              atOptions = {
-                'key' : '${slot}',
-                'format' : 'iframe',
-                'height' : ${h},
-                'width' : ${w},
-                'params' : {}
-              };
-            </script>
-            <script type="text/javascript" src="//://www.highperformanceformat.com{slot}/invoke.js"></script>
-          </body>
-        </html>
+    if (containerRef.current) {
+      containerRef.current.innerHTML = ""; // Purano ad clear kora
+      
+      const width = format === "horizontal" ? 728 : format === "rectangle" ? 300 : 160;
+      const height = format === "horizontal" ? 90 : format === "rectangle" ? 250 : 600;
+
+      // React-e dynamic script load korar niyom
+      const configScript = document.createElement("script");
+      configScript.type = "text/javascript";
+      configScript.innerHTML = `
+        atOptions = {
+          'key' : '${slot}',
+          'format' : 'iframe',
+          'height' : ${height},
+          'width' : ${width},
+          'params' : {}
+        };
       `;
-      iframeRef.current.srcdoc = adScript;
+
+      const invokeScript = document.createElement("script");
+      invokeScript.type = "text/javascript";
+      invokeScript.src = \`//://www.highperformanceformat.com\${slot}/invoke.js\`;
+
+      containerRef.current.appendChild(configScript);
+      containerRef.current.appendChild(invokeScript);
     }
-  }, [slot, h, w]);
+  }, [slot, format]);
 
   return (
-    <div className={`flex flex-col items-center my-4 ${className}`}>
-      <iframe
-        ref={iframeRef}
-        width={w}
-        height={h}
-        frameBorder="0"
-        scrolling="no"
-        style={{ border: 'none', overflow: 'hidden' }}
-        title={`ad-${slot}`}
+    <div className={`w-full flex flex-col items-center justify-center my-4 \${className}\`}>
+      <div 
+        ref={containerRef}
+        className="bg-muted/5 border border-dashed border-border/30 rounded-lg overflow-hidden"
+        style={{ minHeight: format === "horizontal" ? "90px" : format === "rectangle" ? "250px" : "600px" }}
       />
-      <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-tighter font-sans">Advertisement</p>
+      <p className="text-[10px] text-muted-foreground/20 mt-1 uppercase">Advertisement — {slot}</p>
     </div>
   );
 };
