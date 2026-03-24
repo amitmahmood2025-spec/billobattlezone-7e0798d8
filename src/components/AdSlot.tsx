@@ -1,54 +1,46 @@
-"use client";
-import { useEffect, useRef } from "react";
-
 interface AdSlotProps {
-  slot: string; ee0bae7e8602b61974fc88c1777097ec
+  slot: string;
   format?: "auto" | "rectangle" | "horizontal" | "vertical";
   className?: string;
 }
 
+/**
+ * Ad placeholder component. Replace with actual ad network scripts.
+ * 
+ * Usage:
+ *   <AdSlot slot="top-banner" format="horizontal" />
+ *   <AdSlot slot="sidebar" format="rectangle" />
+ * 
+ * To implement real ads:
+ * 1. Google AdSense: Add script in index.html, use data-ad-client/data-ad-slot
+ * 2. AdSterra: Replace with their script tag
+ * 3. Monetag: Replace with their script tag
+ * 4. Custom: Admin can upload banners via admin panel
+ */
 const AdSlot = ({ slot, format = "auto", className = "" }: AdSlotProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.innerHTML = ""; // Purano ad clear kora
-      
-      const width = format === "horizontal" ? 728 : format === "rectangle" ? 300 : 160;
-      const height = format === "horizontal" ? 90 : format === "rectangle" ? 250 : 600;
-
-      // React-e dynamic script load korar niyom
-      const configScript = document.createElement("script");
-      configScript.type = "text/javascript";
-      configScript.innerHTML = `
-        atOptions = {
-          'key' : '${slot}',
-          'format' : 'iframe',
-          'height' : ${height},
-          'width' : ${width},
-          'params' : {}
-        };
-      `;
-
-      const invokeScript = document.createElement("script");
-      invokeScript.type = "text/javascript";
-      invokeScript.src = \`//://www.highperformanceformat.com\${slot}/invoke.js\`;
-
-      containerRef.current.appendChild(configScript);
-      containerRef.current.appendChild(invokeScript);
-    }
-  }, [slot, format]);
-
   return (
-    <div className={`w-full flex flex-col items-center justify-center my-4 \${className}\`}>
-      <div 
-        ref={containerRef}
-        className="bg-muted/5 border border-dashed border-border/30 rounded-lg overflow-hidden"
-        style={{ minHeight: format === "horizontal" ? "90px" : format === "rectangle" ? "250px" : "600px" }}
-      />
-      <p className="text-[10px] text-muted-foreground/20 mt-1 uppercase">Advertisement — {slot}</p>
+    <div
+      className={`w-full flex items-center justify-center bg-muted/20 rounded-lg border border-dashed border-border/50 overflow-hidden ${className}`}
+      data-ad-slot={slot}
+      data-ad-format={format}
+      style={{
+        minHeight: format === "horizontal" ? 90 : format === "rectangle" ? 250 : 100,
+      }}
+    >
+      { <script>
+  atOptions = {
+    'key' : 'ee0bae7e8602b61974fc88c1777097ec',
+    'format' : 'iframe',
+    'height' : 600,
+    'width' : 160,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/ee0bae7e8602b61974fc88c1777097ec/invoke.js"></script>
+ }
+      <p className="text-xs text-muted-foreground/50 select-none">AD — {slot}</p>
     </div>
   );
 };
 
-export default AdSlot;
+export default AdSlot
