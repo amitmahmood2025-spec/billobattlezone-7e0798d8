@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 
 interface AdSlotProps {
-  slot: string; ee0bae7e8602b61974fc88c
+  slot: string; ee0bae7e8602b61974fc88c1777097ec
   format?: "auto" | "rectangle" | "horizontal" | "vertical";
   className?: string;
 }
