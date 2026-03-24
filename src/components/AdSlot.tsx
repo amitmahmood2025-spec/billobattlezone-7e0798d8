@@ -3,61 +3,58 @@ import { useEffect, useRef } from "react";
 
 interface AdSlotProps {
   slot: string; ee0bae7e8602b61974fc88c1777097ec
-  format?: "auto" | "rectangle" | "horizontal" | "vertical";
+  format?: "horizontal" | "vertical" | "rectangle";
   className?: string;
 }
 
-const AdSlot = ({ slot, format = "auto", className = "" }: AdSlotProps) => {
-  const adRef = useRef<HTMLDivElement>(null);
+const AdSlot = ({ slot, format = "vertical", className = "" }: AdSlotProps) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Format onujayi height ebong width set kora
+  // Format onujayi dimensions set kora
   const getDimensions = () => {
     switch (format) {
       case "horizontal": return { w: 728, h: 90 };
       case "rectangle": return { w: 300, h: 250 };
-      case "vertical": return { w: 160, h: 600 };
-      default: return { w: 160, h: 600 }; // Default format
+      default: return { w: 160, h: 600 }; // Vertical
     }
   };
 
   const { w, h } = getDimensions();
 
   useEffect(() => {
-    // Prottekbar slot change hole jeno purano script gulo clear hoye jay
-    if (adRef.current) {
-      adRef.current.innerHTML = ""; 
-
-      const configScript = document.createElement("script");
-      configScript.type = "text/javascript";
-      configScript.innerHTML = `
-        atOptions = {
-          'key' : '${slot}',
-          'format' : 'iframe',
-          'height' : ${h},
-          'width' : ${w},
-          'params' : {}
-        };
+    if (iframeRef.current) {
+      const adScript = `
+        <html>
+          <body style="margin:0; padding:0; display:flex; justify-content:center; align-items:center;">
+            <script type="text/javascript">
+              atOptions = {
+                'key' : '${slot}',
+                'format' : 'iframe',
+                'height' : ${h},
+                'width' : ${w},
+                'params' : {}
+              };
+            </script>
+            <script type="text/javascript" src="//://www.highperformanceformat.com{slot}/invoke.js"></script>
+          </body>
+        </html>
       `;
-
-      const invokeScript = document.createElement("script");
-      invokeScript.type = "text/javascript";
-      invokeScript.src = `//://www.highperformanceformat.com{slot}/invoke.js`;
-
-      adRef.current.appendChild(configScript);
-      adRef.current.appendChild(invokeScript);
+      iframeRef.current.srcdoc = adScript;
     }
-  }, [slot, format, h, w]); // Slot ba format change hole script reload hobe
+  }, [slot, h, w]);
 
   return (
-    <div className={`w-full flex flex-col items-center justify-center gap-2 ${className}`}>
-      <div
-        ref={adRef}
-        className="bg-muted/10 rounded-lg border border-dashed border-border/50 overflow-hidden"
-        style={{ minHeight: `${h}px`, minWidth: `${w}px` }}
+    <div className={`flex flex-col items-center my-4 ${className}`}>
+      <iframe
+        ref={iframeRef}
+        width={w}
+        height={h}
+        frameBorder="0"
+        scrolling="no"
+        style={{ border: 'none', overflow: 'hidden' }}
+        title={`ad-${slot}`}
       />
-      <p className="text-[10px] text-muted-foreground/30 select-none uppercase tracking-tighter">
-        Advertisement — {format}
-      </p>
+      <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-tighter font-sans">Advertisement</p>
     </div>
   );
 };
