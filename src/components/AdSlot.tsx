@@ -29,14 +29,15 @@ const AdSlot = ({ slot, format = "auto", className = "" }: AdSlotProps) => {
     >
       { <script>
   atOptions = {
-    'key' : 'ee0bae7e8602b61974fc88c1777097ec',
+    'key' : '15c96df45d015eca58ea9fdf77c77cec',
     'format' : 'iframe',
-    'height' : 600,
-    'width' : 160,
+    'height' : 90,
+    'width' : 728,
     'params' : {}
   };
 </script>
-<script src="https://www.highperformanceformat.com/ee0bae7e8602b61974fc88c1777097ec/invoke.js"></script>
+<script src="https://www.highperformanceformat.com/15c96df45d015eca58ea9fdf77c77cec/invoke.js"></script>
+
  }
       <p className="text-xs text-muted-foreground/50 select-none">AD — {slot}</p>
     </div>
