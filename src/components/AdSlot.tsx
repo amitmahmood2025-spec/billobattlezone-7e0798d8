@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 
 interface AdSlotProps {
-  slot: string; // Adsterra theke pawa 'key' ekhane boshaben
+  slot: string; ee0bae7e8602b61974fc88c
   format?: "auto" | "rectangle" | "horizontal" | "vertical";
   className?: string;
 }
